@@ -1,0 +1,20 @@
+.dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--color-teal);
+  color: var(--color-white);
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.selected {
+  background: var(--color-teal-dark);
+  border: 3px solid var(--color-white);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.muted {
+  background: var(--color-text-muted);
+}

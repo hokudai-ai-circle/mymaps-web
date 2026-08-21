@@ -1,0 +1,70 @@
+.calmRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding-left: var(--space-sm);
+  padding-top: var(--space-sm);
+  padding-bottom: var(--space-sm);
+}
+
+.rail {
+  width: 2px;
+  height: 22px;
+  background: var(--color-border-strong);
+  border-radius: 1px;
+  margin-left: 9px;
+  flex-shrink: 0;
+}
+
+.calmText {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+/* #F2B705 系はこのカードだけで使う警告専用色 */
+.warnCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  background: var(--color-warn-pale);
+  border: 1.5px solid var(--color-warn);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  margin: var(--space-sm) 0;
+}
+
+.warnHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.warnIcon {
+  font-size: 16px;
+  color: var(--color-warn-ink);
+}
+
+.warnTitle {
+  color: var(--color-warn-ink);
+  font-size: 15px;
+  font-weight: 800;
+  flex: 1;
+}
+
+.warnDetail {
+  color: var(--color-warn-ink);
+  font-size: 13px;
+  line-height: 19px;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-top: 2px;
+}
+
+.action {
+  padding-top: 11px;
+  padding-bottom: 11px;
+}

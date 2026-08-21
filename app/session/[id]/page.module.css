@@ -1,0 +1,204 @@
+.screen {
+  min-height: 100vh;
+  background: var(--color-bg);
+}
+
+.header {
+  padding: var(--space-xs) var(--space-md) 0;
+}
+
+.backBtn {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 var(--space-md) 0 var(--space-xs);
+}
+
+.back {
+  color: var(--color-teal);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.missing {
+  color: var(--color-text-secondary);
+  padding: var(--space-lg);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+  max-width: 640px;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.time {
+  color: var(--color-teal);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.cat {
+  background: var(--color-surface);
+  border-radius: var(--radius-pill);
+  padding: 2px var(--space-sm);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.title {
+  color: var(--color-ink);
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 30px;
+}
+
+.speaker {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.moods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-top: 4px;
+}
+
+.desc {
+  color: var(--color-ink);
+  font-size: 14px;
+  line-height: 22px;
+  margin-top: 4px;
+  white-space: pre-wrap;
+}
+
+.venueCard {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  padding: var(--space-md);
+  margin-top: var(--space-sm);
+}
+
+.venueText {
+  flex: 1;
+  min-width: 0;
+}
+
+.venueName {
+  color: var(--color-ink);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.venueDesc {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  margin-top: 2px;
+  line-height: 17px;
+}
+
+.ticketCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--color-teal-pale);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+}
+
+.ticketTitle {
+  color: var(--color-teal-dark);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.ticketBody {
+  color: var(--color-teal-dark);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.applyLink {
+  display: inline-block;
+  color: var(--color-teal-dark);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: underline;
+  padding: 2px 0;
+}
+
+.officialLink {
+  display: block;
+  color: var(--color-teal);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-align: center;
+  padding: var(--space-sm) 0;
+}
+
+.receptionCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--color-warn-pale);
+  border: 1.5px solid var(--color-warn);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+}
+
+.receptionTitle {
+  color: var(--color-warn-ink);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.receptionBody {
+  color: var(--color-warn-ink);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.travelCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  padding: var(--space-md);
+}
+
+.travelLabel {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.travelValue {
+  color: var(--color-ink);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.conflict {
+  color: var(--color-warn-ink);
+  font-size: 12px;
+  line-height: 18px;
+  margin-top: 4px;
+}

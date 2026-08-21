@@ -1,0 +1,23 @@
+.segment {
+  display: flex;
+  background: var(--color-bg);
+  border-radius: var(--radius-pill);
+  padding: 3px;
+  gap: 3px;
+}
+
+.item {
+  flex: 1;
+  text-align: center;
+  padding: 9px 0;
+  border-radius: var(--radius-pill);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.itemActive {
+  background: var(--color-teal);
+  color: var(--color-white);
+  font-weight: 800;
+}

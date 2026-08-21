@@ -1,0 +1,140 @@
+.screen {
+  min-height: 100vh;
+  background: var(--color-bg);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-surface);
+  padding: var(--space-sm) var(--space-md);
+}
+
+.headerSide {
+  width: 40px;
+  display: flex;
+  justify-content: center;
+}
+
+.brand {
+  color: var(--color-teal);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  background: var(--color-surface);
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.catBar {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+  overflow-x: auto;
+  padding: 0 var(--space-md);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  padding-bottom: var(--space-xl);
+}
+
+.alert,
+.alertButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background: var(--color-warn-pale);
+  border: 1.5px solid var(--color-warn);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  text-align: left;
+  width: 100%;
+}
+
+.alertIcon {
+  color: var(--color-warn-ink);
+  font-size: 15px;
+}
+
+.alertText {
+  color: var(--color-warn-ink);
+  font-size: 13px;
+  font-weight: 700;
+  flex: 1;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.actionBtn {
+  flex: 1;
+  padding-top: 11px;
+  padding-bottom: 11px;
+}
+
+.venue {
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+
+.preWarn {
+  background: var(--color-warn-pale);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  border-left: 3px solid var(--color-warn);
+}
+
+.preWarnText {
+  color: var(--color-warn-ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: var(--space-xl) 0;
+  text-align: center;
+}
+
+.emptyTitle {
+  color: var(--color-ink);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.emptyText {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.policyRow {
+  display: block;
+  text-align: center;
+  padding-top: var(--space-sm);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  text-decoration: underline;
+}

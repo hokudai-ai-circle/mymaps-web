@@ -1,0 +1,30 @@
+.snack {
+  position: fixed;
+  left: var(--space-lg);
+  right: var(--space-lg);
+  bottom: var(--space-lg);
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background: var(--color-ink);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  z-index: 50;
+}
+
+.text {
+  flex: 1;
+  color: var(--color-white);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.action {
+  color: var(--color-teal-pale);
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: underline;
+  flex-shrink: 0;
+}

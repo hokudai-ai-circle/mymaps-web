@@ -1,0 +1,102 @@
+.screen {
+  min-height: 100vh;
+  background: var(--color-bg);
+}
+
+.header {
+  padding: var(--space-sm) var(--space-lg);
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-lg);
+  padding-bottom: var(--space-xl);
+}
+
+.lead {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 20px;
+  margin-bottom: var(--space-sm);
+}
+
+.hint {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  margin-bottom: var(--space-xs);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.dataCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.dataText {
+  color: var(--color-ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.dataSub {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.dataResult {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dataOk {
+  color: var(--color-teal);
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 700;
+}
+
+.dataError {
+  color: var(--color-warn-ink);
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 700;
+}
+
+.dataDetail {
+  color: var(--color-text-muted);
+  font-size: 10px;
+  line-height: 15px;
+}
+
+.note {
+  background: var(--color-teal-pale);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  margin-top: var(--space-sm);
+}
+
+.noteText {
+  color: var(--color-teal-dark);
+  font-size: 12px;
+  line-height: 18px;
+}

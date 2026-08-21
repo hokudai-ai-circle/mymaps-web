@@ -1,0 +1,128 @@
+.screen {
+  min-height: 100vh;
+  background: var(--color-bg);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-lg) 0;
+}
+
+.back {
+  padding: 4px;
+  color: var(--color-text-secondary);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.heading {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.searchWrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin: var(--space-md) var(--space-lg) 0;
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  padding: 0 14px;
+}
+
+.searchIcon {
+  font-size: 14px;
+}
+
+.search {
+  flex: 1;
+  padding: 12px 0;
+  font-size: 15px;
+  color: var(--color-ink);
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: inherit;
+}
+
+.search::placeholder {
+  color: var(--color-text-muted);
+}
+
+.clearIcon {
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 4px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  padding-bottom: var(--space-xl);
+}
+
+.count {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dayLabel {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  padding-left: 2px;
+}
+
+.addBtn {
+  margin-left: auto;
+  background: var(--color-teal);
+  border-radius: var(--radius-pill);
+  padding: 5px 12px;
+  color: var(--color-white);
+  font-size: 11px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.addBtnDone {
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+}
+
+.addBtnDone:disabled {
+  cursor: default;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: var(--space-xl) 0;
+  text-align: center;
+}
+
+.emptyTitle {
+  color: var(--color-ink);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.emptyText {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 20px;
+}

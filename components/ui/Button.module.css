@@ -1,0 +1,37 @@
+.btn {
+  border-radius: var(--radius-pill);
+  padding: 14px var(--space-md);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.btn:not(:disabled):hover {
+  opacity: 0.85;
+}
+
+.primary {
+  background: var(--color-teal);
+  color: var(--color-white);
+}
+
+.outline {
+  background: var(--color-white);
+  border: 1.5px solid var(--color-teal);
+  color: var(--color-teal);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--color-teal);
+}
+
+.warn {
+  background: var(--color-warn);
+  color: var(--color-warn-ink);
+}

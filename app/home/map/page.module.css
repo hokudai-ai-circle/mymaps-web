@@ -1,0 +1,222 @@
+.screen {
+  min-height: 100vh;
+  background: var(--color-bg);
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: var(--space-sm) var(--space-lg);
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.canvas {
+  position: relative;
+  height: 260px;
+  margin: 0 var(--space-lg);
+  background: var(--color-teal-pale);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-teal-line);
+  overflow: hidden;
+}
+
+.canvasLabel {
+  position: absolute;
+  left: var(--space-md);
+  top: var(--space-sm);
+  color: var(--color-teal-dark);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.pin {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* 「丸の枠の高さ」に合わせてある（PIN_DOT_MAX 定義を参照）。枠の高さを変えるなら、ここも一緒に直すこと */
+  transform: translate(-30px, -30px);
+  width: 84px;
+}
+
+.pinDotSlot {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pinActive {
+  z-index: 5;
+}
+
+.pinName {
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  margin-top: 2px;
+  max-width: 84px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pinNameActive {
+  color: var(--color-teal-dark);
+  font-size: 11px;
+}
+
+.here {
+  position: absolute;
+  right: var(--space-md);
+  bottom: var(--space-md);
+  background: var(--color-surface);
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  border: 1px solid var(--color-teal);
+}
+
+.hereText {
+  color: var(--color-teal);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+}
+
+.locBox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  padding: var(--space-md);
+}
+
+.locText {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+/* 古い位置は警告色。この帯だけはイエローを使ってよい（判断を誤らせる状態のため） */
+.locBoxStale {
+  background: var(--color-warn-pale);
+  border-color: var(--color-warn);
+}
+
+.locTextStale {
+  color: var(--color-warn-ink);
+  font-weight: 700;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  padding: var(--space-md);
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.cardHeadText {
+  flex: 1;
+  min-width: 0;
+}
+
+.cardTitle {
+  color: var(--color-ink);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.cardWalk {
+  color: var(--color-teal);
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.cardDesc {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 19px;
+}
+
+.plannedBox {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+}
+
+.plannedTitle {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.plannedItem {
+  color: var(--color-ink);
+  font-size: 12px;
+}
+
+.listTitle {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: var(--space-sm);
+}
+
+.none {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+  text-align: left;
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  padding: 10px 14px;
+}
+
+.rowTime {
+  color: var(--color-teal);
+  font-size: 12px;
+  font-weight: 800;
+  width: 44px;
+  flex-shrink: 0;
+}
+
+.rowTitle {
+  color: var(--color-ink);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
