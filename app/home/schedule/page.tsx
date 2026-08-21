@@ -39,15 +39,17 @@ export default function ScheduleTab() {
     earlyLeaves,
     setEarlyLeave,
     clearEarlyLeave,
-    hiddenCategories,
-    toggleCategory,
   } = useApp();
 
   const [snack, setSnack] = useState<string | null>(null);
   /** 「代わりの候補」シートの対象。null なら閉じている */
   const [altTarget, setAltTarget] = useState<Session | null>(null);
+  /** カテゴリ絞り込み。ホームと同じ仕組み（選んだものだけ表示、未選択なら全件） */
+  const [cats, setCats] = useState<string[]>([]);
+  const toggleCat = (c: string) =>
+    setCats((prev) => (prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]));
 
-  const visible = plan.filter((p) => !hiddenCategories.includes(p.session.category));
+  const visible = cats.length === 0 ? plan : plan.filter((p) => cats.includes(p.session.category));
   const freeSlots = findFreeSlots(plan);
 
   const notify = (msg: string) => {
@@ -77,15 +79,22 @@ export default function ScheduleTab() {
 
       <div className={styles.filterBar}>
         {categories.map((c) => (
-          <Chip key={c} label={c} active={!hiddenCategories.includes(c)} onPress={() => toggleCategory(c)} />
+          <Chip key={c} label={c} active={cats.includes(c)} onPress={() => toggleCat(c)} />
         ))}
+        {cats.length > 0 && <Chip label="解除" tone="plain" onPress={() => setCats([])} />}
       </div>
 
       <div className={styles.content}>
         {visible.length === 0 && (
           <div className={styles.empty}>
-            <p className={styles.emptyTitle}>まだ予定がありません。</p>
-            <p className={styles.emptyText}>ホームのおすすめから追加してみよう。</p>
+            <p className={styles.emptyTitle}>
+              {cats.length > 0 && plan.length > 0 ? '条件に合う予定がありません。' : 'まだ予定がありません。'}
+            </p>
+            <p className={styles.emptyText}>
+              {cats.length > 0 && plan.length > 0
+                ? 'カテゴリの絞り込みを外してみてください。'
+                : 'ホームのおすすめから追加してみよう。'}
+            </p>
           </div>
         )}
 

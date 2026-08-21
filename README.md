@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NoMaps fan app (Web版)
 
-## Getting Started
+NoMaps（札幌の多産業クリエイティブ・カンファレンス）の非公式ファンアプリ、Web版。
 
-First, run the development server:
+公式タイムテーブルは会場間の徒歩移動時間を考慮していないため、「その予定は本当に間に合うか」を事前に警告することがこのアプリの目的です。ネイティブ版（[NoMaps-fan-app](../NoMaps-fan-app)）をベースに、Next.js で作り直した独立プロジェクトです。
+
+## セットアップ
+
+```bash
+npm install
+```
+
+## 開発サーバーの起動
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+[http://localhost:3000](http://localhost:3000) をブラウザで開いてください。`/` はオンボーディング画面です。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## テスト
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+判定エンジン・データ検証・おすすめロジックなど、純粋なロジック部分のテストです（Node標準の `node:test` を使用、追加ライブラリなし）。
 
-## Learn More
+```bash
+npm test
+```
 
-To learn more about Next.js, take a look at the following resources:
+## 型チェック / ビルド
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run typecheck
+npm run build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 構成
 
-## Deploy on Vercel
+- `lib/schedule.ts` — 判定エンジン（移動時間・受付締切・重複の判定）。このアプリの中心。
+- `lib/dataset.ts` — セッション・会場データの型とバリデーション。
+- `lib/eventSource.ts` — 公開データの取得・`localStorage` へのキャッシュ。
+- `lib/location.ts` — ブラウザの Geolocation API との境界。
+- `data/event.ts` — NoMaps公式サイトから転記した実データ。
+- `store/AppContext.tsx` — アプリ全体の状態（React Context 1つ）。
+- `app/` — 画面（オンボーディング／ホーム／マップ／予定／プロフィール／検索／セッション詳細）。
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+通知機能（予定前のリマインダー）は、このWeb版のスコープには含まれていません。

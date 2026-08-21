@@ -35,7 +35,6 @@ type Persisted = {
   version: 1;
   profile: Profile | null;
   plannedIds: string[];
-  hiddenCategories: string[];
   earlyLeaves: EarlyLeaves;
 };
 
@@ -82,17 +81,6 @@ function keepKnownTags(tags: unknown): InterestTag[] {
 /** 保存済みデータの立場が廃止されていた場合に備える */
 function keepKnownRole(role: unknown): Role {
   return ROLES.includes(role as Role) ? (role as Role) : '学生';
-}
-
-/**
- * 保存済みの絞り込みから、文字列でないものを落とす。
- *
- * **カテゴリの語彙は既に2回変わっている。** 公式は随時追加するので、また変わる。
- * **絞り込みの選択肢は `categoriesOf(dataset)` が作るので、画面には出てこない。**
- */
-function keepStringCategories(categories: unknown): string[] {
-  if (!Array.isArray(categories)) return [];
-  return categories.filter((c): c is string => typeof c === 'string');
 }
 
 export type Profile = {
@@ -169,10 +157,6 @@ type AppState = {
   /** ホームの「きみへのおすすめ」。選択中の日付から最大 RECOMMEND_LIMIT 件 */
   recommendations: Session[];
 
-  /** カテゴリの表示フィルタ */
-  hiddenCategories: string[];
-  toggleCategory: (c: string) => void;
-
   /**
    * 現在地。**保存しない。** ページを閉じれば消える。
    * 会期が終わったあとに、その人がどこにいたかの記録を残さない
@@ -224,7 +208,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const fetchedAtRef = useRef<number | null>(null);
   const [day, setDay] = useState<string>(BUNDLED.days[0].id);
   const [plannedIds, setPlannedIds] = useState<string[]>([]);
-  const [hiddenCategories, setHiddenCategories] = useState<string[]>([]);
   const [earlyLeaves, setEarlyLeaves] = useState<EarlyLeaves>({});
   // 位置情報は永続化しない。Persisted に入れていないのは意図的
   const [location, setLocation] = useState<LatLng | null>(null);
@@ -254,7 +237,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               : null,
           );
           setPlannedIds(data.plannedIds ?? []);
-          setHiddenCategories(keepStringCategories(data.hiddenCategories));
           setEarlyLeaves(data.earlyLeaves ?? {});
         }
       }
@@ -274,7 +256,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       version: 1,
       profile,
       plannedIds,
-      hiddenCategories,
       earlyLeaves,
     };
     try {
@@ -284,7 +265,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       console.warn('保存に失敗しました', e);
       setSaveError('保存できませんでした。ブラウザのストレージ容量を確認してください。');
     }
-  }, [profile, plannedIds, hiddenCategories, earlyLeaves]);
+  }, [profile, plannedIds, earlyLeaves]);
 
   /**
    * データを取りに行き、より新しければ差し替える。
@@ -508,12 +489,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [dataset, plannedSessions, earlyLeaves, profile, day],
   );
 
-  const toggleCategory = useCallback((c: string) => {
-    setHiddenCategories((prev) =>
-      prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c],
-    );
-  }, []);
-
   const categories = useMemo(() => categoriesOf(dataset), [dataset]);
 
   const value: AppState = useMemo(
@@ -543,8 +518,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       problemCount,
       check,
       recommendations,
-      hiddenCategories,
-      toggleCategory,
       location,
       locationStatus,
       locationAt,
@@ -575,8 +548,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       problemCount,
       check,
       recommendations,
-      hiddenCategories,
-      toggleCategory,
       location,
       locationStatus,
       locationAt,
