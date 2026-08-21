@@ -173,12 +173,20 @@ export default function HomeTab() {
         {list.length === 0 && (
           <div className={styles.empty}>
             <p className={styles.emptyTitle}>
-              {cats.length > 0 ? '条件に合うものがありません' : 'この日はまだありません'}
+              {cats.length > 0
+                ? '条件に合うものがありません'
+                : mode === 'おすすめ' && allOfDay.length > 0
+                  ? 'おすすめはありません'
+                  : 'この日はまだありません'}
             </p>
             <p className={styles.emptyText}>
               {cats.length > 0
                 ? 'カテゴリの絞り込みを外すか、別の日を選んでみてください。'
-                : 'NoMaps公式サイトで公開済みのプログラムを掲載しています。まだ公開されていない日もあります。'}
+                : mode === 'おすすめ' && allOfDay.length > 0
+                  ? // recommendations は予定済みのセッションを除いて出す。ここまで来たなら、
+                    // この日のイベントはもう全部予定に入っている
+                    'この日のイベントは、もう予定に入っています。「すべてのイベント」から確認できます。'
+                  : 'NoMaps公式サイトで公開済みのプログラムを掲載しています。まだ公開されていない日もあります。'}
             </p>
           </div>
         )}
