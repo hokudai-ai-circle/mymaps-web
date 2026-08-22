@@ -12,6 +12,21 @@
   --color-teal-pale: #e7f2f1;
   --color-teal-line: #d5dede;
 
+  /*
+    会場マップ。**淡い色どうしを重ねると画面上では消える。**
+    以前 tealLine(#D5DEDE) を淡い地(#E7F2F1)に引いたところ、
+    実機で線が1本も見えず「ただの緑単色」という報告になった（比 1.20）。
+
+    地図らしく見えるかどうかは、線の有無ではなく
+    街区・通り・公園・川が塗り分けられているかで決まる。
+  */
+  --color-map-block: #ded6c8;
+  --color-map-road: #ffffff;
+  --color-map-park: #a8cf9a;
+  --color-map-river: #8fbedf;
+  --color-map-label: #7a7268;
+  --color-map-here: #1b72e8;
+
   /* 警告（イエロー/アンバー系）— 警告以外に使わないこと */
   --color-warn: #f2b705;
   --color-warn-pale: #fff6dc;

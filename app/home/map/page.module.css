@@ -15,23 +15,114 @@
   font-weight: 700;
 }
 
+/*
+  地は街区の色。**ここが塗られていることが「地図らしさ」の正体で、
+  通りは白く抜くことで浮かび上がる。**
+*/
 .canvas {
   position: relative;
-  height: 260px;
+  height: 360px;
   margin: 0 var(--space-lg);
-  background: var(--color-teal-pale);
+  background: var(--color-map-block);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-teal-line);
   overflow: hidden;
 }
 
-.canvasLabel {
+/* 東西の通り */
+.road {
   position: absolute;
-  left: var(--space-md);
+  left: 0;
+  right: 0;
+  background: var(--color-map-road);
+}
+
+/* 南北の通り */
+.roadV {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--color-map-road);
+}
+
+/* 大通公園。通りより太い緑の帯 */
+.park {
+  background: var(--color-map-park);
+}
+
+/* 創成川 */
+.river {
+  background: var(--color-map-river);
+}
+
+.streetLabel {
+  position: absolute;
+  left: 4px;
+  margin-top: -14px;
+  color: var(--color-map-label);
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.avenueLabel {
+  position: absolute;
+  bottom: 3px;
+  margin-left: 3px;
+  color: var(--color-map-label);
+  font-size: 9px;
+  font-weight: 600;
+}
+
+/*
+  方角。左上に固定で置く。**画面の角に寄せると通りの名前と重なる**ので、
+  少し内側へ。地の色に溶けないよう、白地の札にしてある。
+*/
+.compass {
+  position: absolute;
+  left: var(--space-sm);
   top: var(--space-sm);
-  color: var(--color-teal-dark);
-  font-size: 11px;
-  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--color-white);
+  border-radius: var(--radius-sm);
+  padding: 3px 6px;
+  z-index: 6;
+  opacity: 0.92;
+}
+
+.compassArrow {
+  color: var(--color-ink);
+  font-size: 10px;
+  line-height: 11px;
+}
+
+.compassText {
+  color: var(--color-ink);
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 11px;
+}
+
+/*
+  現在地。**会場のピンと形を変える。** 同じ丸だと、会場なのか自分なのか
+  分からない。青い点は地図アプリの作法に合わせてある。
+*/
+.youAreHere {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  margin-left: -7px;
+  margin-top: -7px;
+  border-radius: 50%;
+  background: var(--color-map-here);
+  border: 2.5px solid var(--color-white);
+  z-index: 4;
+}
+
+/* 古い位置。**薄くして「いまここ」と断言しない** */
+.youAreHereStale {
+  opacity: 0.45;
 }
 
 .pin {
@@ -159,6 +250,44 @@
   color: var(--color-text-secondary);
   font-size: 13px;
   line-height: 19px;
+}
+
+.addressBox {
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.addressLabel {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.address {
+  color: var(--color-ink);
+  font-size: 14px;
+  margin-bottom: var(--space-xs);
+}
+
+.addressHint {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.basis {
+  margin-top: var(--space-lg);
+  padding: 0 var(--space-md) var(--space-lg);
+}
+
+.basisText {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  line-height: 17px;
 }
 
 .plannedBox {

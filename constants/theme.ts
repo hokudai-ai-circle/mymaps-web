@@ -17,6 +17,19 @@ export const colors = {
   tealPale: '#E7F2F1',
   tealLine: '#D5DEDE',
 
+  /*
+    会場マップ（#4）。**淡い色どうしを重ねると画面上では消える。**
+    以前 tealLine(#D5DEDE) を淡い地(#E7F2F1)に引いたところ、
+    実機で線が1本も見えず「ただの緑単色」という報告になった（比 1.20）。
+    地図らしく見えるかどうかは、街区・通り・公園・川の塗り分けで決まる。
+  */
+  mapBlock: '#DED6C8',
+  mapRoad: '#FFFFFF',
+  mapPark: '#A8CF9A',
+  mapRiver: '#8FBEDF',
+  mapLabel: '#7A7268',
+  mapHere: '#1B72E8',
+
   // 警告（イエロー/アンバー系）— 警告以外に使わないこと
   warn: '#F2B705',
   warnPale: '#FFF6DC',
