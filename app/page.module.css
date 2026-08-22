@@ -40,6 +40,15 @@
   letter-spacing: 0.5px;
 }
 
+.disclaimer {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 18px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+}
+
 .h1 {
   color: var(--color-ink);
   font-size: 26px;

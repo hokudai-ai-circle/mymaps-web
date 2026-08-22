@@ -46,6 +46,14 @@ export default function Onboarding() {
     <div className={styles.screen}>
       <div className={styles.content}>
         <span className={styles.brand}>MyMaps</span>
+
+        {/* Issue #3: このアプリが非公式であることを、利用開始前に必ず示す */}
+        <p className={styles.disclaimer}>
+          NoMaps 2026 のファンアプリです。公式アプリではありません。
+          <br />
+          掲載しているプログラムは、公式サイトで公開済みのものです。順次追加されます。
+        </p>
+
         <h1 className={styles.h1}>
           はじめまして。
           <br />

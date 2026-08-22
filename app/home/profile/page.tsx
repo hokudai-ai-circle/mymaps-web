@@ -116,6 +116,18 @@ export default function ProfileTab() {
             入力内容はブラウザ内にのみ保存され、外部に送信されません。氏名やメールアドレスを聞くことはありません。
           </p>
         </div>
+
+        {/*
+          Issue #3: このアプリが非公式であることを常設で示す。
+          NoMaps事務局からの掲載許諾がまだ得られていないため、公式と誤解されないようにする。
+        */}
+        <div className={styles.disclaimer}>
+          <p className={styles.disclaimerText}>
+            NoMaps 2026 のファンアプリです。公式アプリではありません。
+            <br />
+            掲載しているプログラムは、公式サイトで公開済みのものです。順次追加されます。
+          </p>
+        </div>
       </div>
     </div>
   );
