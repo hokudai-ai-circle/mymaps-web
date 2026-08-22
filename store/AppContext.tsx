@@ -200,8 +200,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const [hydrated, setHydrated] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  // 読み込み完了前の初期値で上書き保存してしまうのを防ぐ
-  const canSave = useRef(false);
 
   // 起動時に読み込む（保存と復元は必ずセットで実装する）。
   // window/localStorage を使うため useEffect の中でのみ触る（SSR中はここを通らない）
@@ -224,14 +222,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       // 読めなかった場合は初期状態で続行する(起動できなくなる方が困る)
       console.warn('保存データの読み込みに失敗しました', e);
     } finally {
-      canSave.current = true;
       setHydrated(true);
     }
   }, []);
 
   // 変更のたびに保存する
   useEffect(() => {
-    if (!canSave.current) return;
+    // 読み込み完了前（初期値がまだ入っている状態）で上書き保存してしまうのを防ぐ
+    if (!hydrated) return;
     const payload: Persisted = {
       version: 1,
       profile,
@@ -245,7 +243,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       console.warn('保存に失敗しました', e);
       setSaveError('保存できませんでした。ブラウザのストレージ容量を確認してください。');
     }
-  }, [profile, plannedIds, earlyLeaves]);
+  }, [hydrated, profile, plannedIds, earlyLeaves]);
 
   /**
    * データを取りに行き、より新しければ差し替える。
