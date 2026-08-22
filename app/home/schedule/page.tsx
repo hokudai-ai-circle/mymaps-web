@@ -122,7 +122,7 @@ export default function ScheduleTab() {
             />
             <SessionCard
               session={item.session}
-              onPress={() => router.push(`/session/${item.session.id}`)}
+              onPress={() => router.push(`/session?id=${item.session.id}`)}
               right={
                 <button
                   type="button"
@@ -190,7 +190,7 @@ export default function ScheduleTab() {
                         <button
                           key={c.id}
                           type="button"
-                          onClick={() => router.push(`/session/${c.id}`)}
+                          onClick={() => router.push(`/session?id=${c.id}`)}
                           className={styles.freeCandidate}
                         >
                           {`・${c.title}`}

@@ -241,7 +241,7 @@ export default function HomeTab() {
 
           return (
             <div key={s.id} className={styles.item}>
-              <SessionCard session={s} onPress={() => router.push(`/session/${s.id}`)} />
+              <SessionCard session={s} onPress={() => router.push(`/session?id=${s.id}`)} />
               {warn && (
                 <div className={styles.preWarn}>
                   <span className={styles.preWarnText}>

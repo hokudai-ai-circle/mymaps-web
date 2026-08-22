@@ -1,6 +1,7 @@
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
+import { Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { NavIcon } from '@/components/NavIcon';
 import { Button, VenueDot } from '@/components/ui';
 import { sessionById, venueById } from '@/lib/dataset';
@@ -25,11 +26,20 @@ function BackButton({ onPress }: { onPress: () => void }) {
 }
 
 export default function SessionDetail() {
+  return (
+    <Suspense fallback={null}>
+      <SessionDetailContent />
+    </Suspense>
+  );
+}
+
+function SessionDetailContent() {
   const router = useRouter();
-  const params = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
+  const id = searchParams.get('id');
   const { dataset, addSession, removeSession, isPlanned, check } = useApp();
 
-  const session = params.id ? sessionById(dataset, params.id) : undefined;
+  const session = id ? sessionById(dataset, id) : undefined;
 
   if (!session) {
     return (

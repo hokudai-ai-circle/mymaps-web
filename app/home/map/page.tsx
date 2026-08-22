@@ -356,7 +356,7 @@ function MapTabContent() {
         <p className={styles.listTitle}>{`${day} のセッション`}</p>
         {todays.length === 0 && <p className={styles.none}>この日、この会場のセッションはありません。</p>}
         {todays.map((s) => (
-          <button key={s.id} type="button" className={styles.row} onClick={() => router.push(`/session/${s.id}`)}>
+          <button key={s.id} type="button" className={styles.row} onClick={() => router.push(`/session?id=${s.id}`)}>
             <span className={styles.rowTime}>{s.start}</span>
             <span className={styles.rowTitle}>{s.title}</span>
           </button>

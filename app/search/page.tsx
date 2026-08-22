@@ -110,7 +110,7 @@ export default function SearchScreen() {
               <p className={styles.dayLabel}>{`${s.day}（${dataset.days.find((d) => d.id === s.day)?.weekday ?? ''}）`}</p>
               <SessionCard
                 session={s}
-                onPress={() => router.push(`/session/${s.id}`)}
+                onPress={() => router.push(`/session?id=${s.id}`)}
                 right={
                   <button
                     type="button"
