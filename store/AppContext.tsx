@@ -39,16 +39,6 @@ type Persisted = {
 };
 
 /**
- * 立場。
- * ヒアリングした5人のうち吉野さん・水野さんは運営ボランティア経験者で、
- * 当初の3択（学生／社会人／出展者）ではこの層が抜けていた。
- * 選択が面倒にならないよう、増やすのは1つに留める。
- */
-export type Role = '学生' | '社会人' | '出展者' | '運営・スタッフ';
-
-export const ROLES: Role[] = ['学生', '社会人', '出展者', '運営・スタッフ'];
-
-/**
  * 興味タグ。
  *
  * 当初の8個は5個がビジネス系に偏っており、セッションのカテゴリが5つある
@@ -78,13 +68,7 @@ function keepKnownTags(tags: unknown): InterestTag[] {
   );
 }
 
-/** 保存済みデータの立場が廃止されていた場合に備える */
-function keepKnownRole(role: unknown): Role {
-  return ROLES.includes(role as Role) ? (role as Role) : '学生';
-}
-
 export type Profile = {
-  role: Role;
   tags: InterestTag[];
 };
 
@@ -227,14 +211,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (raw) {
         const data = JSON.parse(raw) as Persisted;
         if (data?.version === 1) {
-          // 選択肢を組み替えたため、保存済みの古い値をここで整える
+          // 選択肢を組み替えたため、保存済みの古い値をここで整える。
+          // 廃止した role は読み捨てる（#1）
           setProfile(
-            data.profile
-              ? {
-                  role: keepKnownRole(data.profile.role),
-                  tags: keepKnownTags(data.profile.tags),
-                }
-              : null,
+            data.profile ? { tags: keepKnownTags(data.profile.tags) } : null,
           );
           setPlannedIds(data.plannedIds ?? []);
           setEarlyLeaves(data.earlyLeaves ?? {});

@@ -5,7 +5,7 @@ import type { Session } from '@/lib/dataset';
 import { venueById } from '@/lib/dataset';
 import { useApp } from '@/store/AppContext';
 import { Alternative, travelLabel } from '@/lib/schedule';
-import { MoodChip, VenueDot } from './ui';
+import { VenueDot } from './ui';
 import styles from './AlternativeSheet.module.css';
 
 /**
@@ -82,14 +82,6 @@ export function AlternativeSheet({
                     <div className={styles.venueRow}>
                       <VenueDot letter={venue.letter} size={18} />
                       <span className={styles.venueName}>{venue.name}</span>
-                    </div>
-                  )}
-
-                  {alt.session.moods.length > 0 && (
-                    <div className={styles.moods}>
-                      {alt.session.moods.map((m) => (
-                        <MoodChip key={m} label={m} />
-                      ))}
                     </div>
                   )}
 

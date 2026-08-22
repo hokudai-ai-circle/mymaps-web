@@ -90,10 +90,3 @@
   font-size: 10px;
   font-weight: 700;
 }
-
-.moods {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-xs);
-  margin-top: 6px;
-}

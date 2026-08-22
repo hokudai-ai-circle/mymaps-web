@@ -58,7 +58,6 @@ function valid(): Record<string, unknown> {
         title: 'セッション1',
         speaker: '',
         category: 'SOCIAL',
-        moods: [],
         desc: '',
       },
       {
@@ -70,7 +69,6 @@ function valid(): Record<string, unknown> {
         title: 'セッション2',
         speaker: '',
         category: 'CAREER',
-        moods: [],
         desc: '',
       },
     ],

@@ -49,7 +49,6 @@ function mk(
     title: `テスト${seq}`,
     speaker: 'テスト',
     category: 'SOCIAL',
-    moods: [],
     desc: '',
     ...extra,
   };

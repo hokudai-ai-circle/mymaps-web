@@ -4,18 +4,17 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Chip } from '@/components/ui';
 import { PRIVACY_POLICY_URL } from '@/constants/links';
-import { INTEREST_TAGS, InterestTag, Role, ROLES, useApp } from '@/store/AppContext';
+import { INTEREST_TAGS, InterestTag, useApp } from '@/store/AppContext';
 import styles from './page.module.css';
 
 /**
  * オンボーディング。
- * 立場と興味タグを聞き、ホームのおすすめの照合に使う。
+ * 興味タグを聞き、ホームのおすすめの照合に使う。
  * 位置情報の扱いを先に明示する。
  */
 export default function Onboarding() {
   const router = useRouter();
   const { completeOnboarding, hydrated, profile } = useApp();
-  const [role, setRole] = useState<Role | null>(null);
   const [tags, setTags] = useState<InterestTag[]>([]);
 
   // 前回オンボーディングを終えていれば、毎回聞き直さずホームへ進む
@@ -38,7 +37,7 @@ export default function Onboarding() {
     setTags((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
 
   const start = () => {
-    completeOnboarding({ role: role ?? '学生', tags });
+    completeOnboarding({ tags });
     router.replace('/home');
   };
 
@@ -61,13 +60,6 @@ export default function Onboarding() {
         </h1>
         <p className={styles.lead}>興味に合わせて、今日のおすすめを選びます。あとから変更OK。</p>
 
-        <p className={styles.q}>立場は？</p>
-        <div className={styles.row}>
-          {ROLES.map((r) => (
-            <Chip key={r} label={r} active={role === r} onPress={() => setRole(r)} />
-          ))}
-        </div>
-
         <p className={styles.q}>気になるタグは？（いくつでも）</p>
         <div className={styles.row}>
           {INTEREST_TAGS.map((t) => (
@@ -84,7 +76,7 @@ export default function Onboarding() {
           </a>
         </div>
 
-        <Button label={role ? 'はじめる' : '立場を選んでください'} onPress={start} disabled={!role} />
+        <Button label="はじめる" onPress={start} />
 
         <button type="button" onClick={start} className={styles.skip}>
           あとで設定する

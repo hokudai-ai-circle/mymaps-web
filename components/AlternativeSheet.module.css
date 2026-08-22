@@ -120,13 +120,6 @@
   font-weight: 600;
 }
 
-.moods {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-xs);
-  margin-top: 4px;
-}
-
 .travel {
   color: var(--color-teal-dark);
   font-size: 12px;

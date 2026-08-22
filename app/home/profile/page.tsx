@@ -1,7 +1,7 @@
 'use client';
 
 import { Button, Chip, SectionTitle } from '@/components/ui';
-import { INTEREST_TAGS, InterestTag, Role, ROLES, useApp } from '@/store/AppContext';
+import { INTEREST_TAGS, InterestTag, useApp } from '@/store/AppContext';
 import styles from './page.module.css';
 
 /**
@@ -37,14 +37,10 @@ export default function ProfileTab() {
   const { profile, updateProfile, dataset, datasetChecking, datasetCheckedAt, datasetResult, refreshDataset } =
     useApp();
 
-  const role: Role = profile?.role ?? '学生';
   const tags: InterestTag[] = profile?.tags ?? [];
-
-  const setRole = (r: Role) => updateProfile({ role: r, tags });
 
   const toggleTag = (t: InterestTag) =>
     updateProfile({
-      role,
       tags: tags.includes(t) ? tags.filter((x) => x !== t) : [...tags, t],
     });
 
@@ -58,13 +54,6 @@ export default function ProfileTab() {
         <p className={styles.lead}>
           ここで選んだ内容は、ホームのおすすめの並びに使われます。いつでも変えられます。
         </p>
-
-        <SectionTitle>立場</SectionTitle>
-        <div className={styles.row}>
-          {ROLES.map((r) => (
-            <Chip key={r} label={r} active={role === r} onPress={() => setRole(r)} />
-          ))}
-        </div>
 
         <SectionTitle>気になるタグ</SectionTitle>
         <p className={styles.hint}>

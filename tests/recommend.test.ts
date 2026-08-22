@@ -41,7 +41,6 @@ function mk(
     title: `候補${seq}`,
     speaker: '',
     category: CATEGORIES[0],
-    moods: [],
     desc: '',
     ...extra,
   };
@@ -50,7 +49,7 @@ function mk(
 const base = { dataset: BUNDLED, earlyLeaves: {}, day: 'D1' };
 
 /** 'スタートアップ' は CAREER に対応する。CAREER のセッションだけ +3 される */
-const careerFan: Profile = { role: '社会人', tags: ['スタートアップ'] };
+const careerFan: Profile = { tags: ['スタートアップ'] };
 const CAREER = 'CAREER' as const;
 
 describe('interestScore（従来のスコア。挙動を変えていないことの確認）', () => {

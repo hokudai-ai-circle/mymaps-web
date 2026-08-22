@@ -69,13 +69,6 @@
   font-size: 14px;
 }
 
-.moods {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-xs);
-  margin-top: 4px;
-}
-
 .desc {
   color: var(--color-ink);
   font-size: 14px;

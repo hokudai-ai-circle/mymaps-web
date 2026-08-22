@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { NavIcon } from '@/components/NavIcon';
-import { Button, MoodChip, VenueDot } from '@/components/ui';
+import { Button, VenueDot } from '@/components/ui';
 import { sessionById, venueById } from '@/lib/dataset';
 import { travelLabel } from '@/lib/schedule';
 import { useApp } from '@/store/AppContext';
@@ -60,12 +60,6 @@ export default function SessionDetail() {
 
         <h1 className={styles.title}>{session.title}</h1>
         <p className={styles.speaker}>{session.speaker}</p>
-
-        <div className={styles.moods}>
-          {session.moods.map((m) => (
-            <MoodChip key={m} label={m} />
-          ))}
-        </div>
 
         <p className={styles.desc}>{session.desc}</p>
 

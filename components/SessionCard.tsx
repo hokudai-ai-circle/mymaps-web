@@ -3,19 +3,17 @@
 import type { Session } from '@/lib/dataset';
 import { venueById } from '@/lib/dataset';
 import { useApp } from '@/store/AppContext';
-import { MoodChip, VenueDot } from './ui';
+import { VenueDot } from './ui';
 import styles from './SessionCard.module.css';
 
 export function SessionCard({
   session,
   onPress,
   right,
-  compact = false,
 }: {
   session: Session;
   onPress?: () => void;
   right?: React.ReactNode;
-  compact?: boolean;
 }) {
   // **同梱データを直接見ない。** データは外から差し替わるので、
   // いま使っているデータセットから引かないと、古い会場名を出しうる
@@ -46,14 +44,6 @@ export function SessionCard({
         */}
         {session.ticket && <span className={styles.ticket}>{session.ticket}</span>}
       </div>
-
-      {!compact && session.moods.length > 0 && (
-        <div className={styles.moods}>
-          {session.moods.map((m) => (
-            <MoodChip key={m} label={m} />
-          ))}
-        </div>
-      )}
     </>
   );
 

@@ -50,8 +50,8 @@ export type Day = { id: string; label: string; weekday: string };
 /**
  * セッション。
  *
- * ⚠️ **`category` と `moods` は `string` にしてある。** 同梱データ側では
- * `Category` / `MoodTag` に絞って型の関所を効かせるが、**外から来るデータには
+ * ⚠️ **`category` は `string` にしてある。** 同梱データ側では
+ * `Category` に絞って型の関所を効かせるが、**外から来るデータには
  * 関所を効かせられない**（実行時に届くのでビルドは止まらない）。
  *
  * **知らないカテゴリを拒否しない。** 会期中に公式が新しいカテゴリを出したとき、
@@ -67,7 +67,6 @@ export type Session = {
   title: string;
   speaker: string;
   category: string;
-  moods: string[];
   desc: string;
   /** 受付締切。**開始時刻より前でなければならない** */
   reception?: string;
@@ -324,7 +323,6 @@ export function parseDataset(input: unknown): ParseResult {
       title: raw.title,
       speaker: typeof raw.speaker === 'string' ? raw.speaker : '',
       category: raw.category,
-      moods: Array.isArray(raw.moods) ? raw.moods.filter(isNonEmptyString) : [],
       desc: typeof raw.desc === 'string' ? raw.desc : '',
       ...(reception ? { reception } : {}),
       ...(optionalString(raw.ticket) ? { ticket: raw.ticket as string } : {}),

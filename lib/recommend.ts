@@ -24,12 +24,12 @@
  * 判定は `lib/schedule.ts` の `checkAdd` をそのまま使う。推薦のために判定
  * ロジックを書き直さない（二重に持つと必ずずれる）。
  *
- * ## スコア（`interestScore`）はいじっていない
+ * ## スコア（`interestScore`）は興味タグの一致だけになった（#1）
  *
- * AppContext にあったものをそのまま移しただけで、重みも条件も変えていない。
- * このスコアには**別の問題がある**（利用者ごとの差がほとんど出ない）が、
- * カテゴリが3つに減った現状では検証できないため、公式のプログラムが出揃って
- * から別途扱う。
+ * 当初は AppContext にあったものをそのまま移しただけだったが、立場（Role）と
+ * 雰囲気タグ（moods）による加点はどちらも撤去した。立場はおすすめの並びに
+ * 一切影響しないまま必須入力になっていただけで、雰囲気タグは公式の裏付けが無い
+ * 推測だった（2026-08-22決定）。残っているのは興味タグとカテゴリの一致による加点のみ。
  */
 
 import type { Dataset, Session } from '@/lib/dataset';
@@ -55,7 +55,7 @@ const TAG_TO_CATEGORY: Record<InterestTag, Category[]> = {
   フード: ['SOCIAL'],
 };
 
-/** 従来のスコア。AppContext から移しただけで、重みも条件も変えていない */
+/** 興味タグがセッションのカテゴリに一致していれば加点する */
 export function interestScore(session: Session, profile: Profile | null): number {
   // 定数の型ではなく文字列で照合する。**外から届くデータには知らないカテゴリが含まれうる**
   const wanted = new Set<string>();
@@ -63,8 +63,6 @@ export function interestScore(session: Session, profile: Profile | null): number
 
   let score = 0;
   if (wanted.has(session.category)) score += 3;
-  if (profile?.role === '学生' && session.moods.includes('学生多め')) score += 2;
-  if (session.moods.includes('初心者歓迎')) score += 1;
   return score;
 }
 

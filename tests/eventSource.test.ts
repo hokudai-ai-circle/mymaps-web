@@ -35,7 +35,6 @@ function validPayload(dataVersion = 5) {
         title: 'セッション',
         speaker: '',
         category: 'SOCIAL',
-        moods: [],
         desc: '',
       },
     ],
@@ -113,7 +112,6 @@ describe('fetchDataset', () => {
       title: '時刻が壊れている',
       speaker: '',
       category: 'SOCIAL',
-      moods: [],
       desc: '',
     });
     stubFetch(async () => ({ ok: true, status: 200, json: async () => payload }));
