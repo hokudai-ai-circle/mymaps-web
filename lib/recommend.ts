@@ -24,12 +24,14 @@
  * 判定は `lib/schedule.ts` の `checkAdd` をそのまま使う。推薦のために判定
  * ロジックを書き直さない（二重に持つと必ずずれる）。
  *
- * ## スコア（`interestScore`）は興味タグの一致だけになった（#1）
+ * ## スコア（`interestScore`）
  *
- * 当初は AppContext にあったものをそのまま移しただけだったが、立場（Role）と
- * 雰囲気タグ（moods）による加点はどちらも撤去した。立場はおすすめの並びに
- * 一切影響しないまま必須入力になっていただけで、雰囲気タグは公式の裏付けが無い
- * 推測だった（2026-08-22決定）。残っているのは興味タグとカテゴリの一致による加点のみ。
+ * 立場（Role）と雰囲気タグ（moods）による加点はどちらも撤去した（#1）。
+ * 立場はおすすめの並びに一切影響しないまま必須入力になっていただけで、
+ * 雰囲気タグは公式の裏付けが無い推測だった（2026-08-22決定）。
+ *
+ * 代わりに、セッションごとの重み（`tagWeights`）で加点するようになった（#2）。
+ * 詳しくは `interestScore` 自体のコメントを参照。
  */
 
 import type { Dataset, Session } from '@/lib/dataset';
@@ -55,11 +57,33 @@ const TAG_TO_CATEGORY: Record<InterestTag, Category[]> = {
   フード: ['SOCIAL'],
 };
 
-/** 興味タグがセッションのカテゴリに一致していれば加点する */
+/**
+ * 興味の一致度。
+ *
+ * ## セッションごとの重みを優先する
+ *
+ * `tagWeights` が入っていれば、そちらだけを見る（`data/tag-keywords.ts` が
+ * セッションのタイトルと説明文から計算する）。**カテゴリを一切経由しない**ので、
+ * 公式が新しいカテゴリを出しても、おすすめの質が落ちない。
+ *
+ * ## 無ければ、従来どおりカテゴリで加点する
+ *
+ * ⚠️ **この経路は「10種類のタグが2つのカテゴリに潰れる」ので精度が低い。**
+ * **移行の途中で壊さないためだけに残してある。**
+ * 全セッションに `tagWeights` が入ったら消してよい。
+ */
 export function interestScore(session: Session, profile: Profile | null): number {
+  const tags = profile?.tags ?? [];
+
+  if (session.tagWeights !== undefined) {
+    let score = 0;
+    for (const t of tags) score += session.tagWeights[t] ?? 0;
+    return score;
+  }
+
   // 定数の型ではなく文字列で照合する。**外から届くデータには知らないカテゴリが含まれうる**
   const wanted = new Set<string>();
-  profile?.tags.forEach((t) => TAG_TO_CATEGORY[t]?.forEach((c) => wanted.add(c)));
+  tags.forEach((t) => TAG_TO_CATEGORY[t]?.forEach((c) => wanted.add(c)));
 
   let score = 0;
   if (wanted.has(session.category)) score += 3;

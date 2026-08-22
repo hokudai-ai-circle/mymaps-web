@@ -127,6 +127,56 @@ describe('parseDataset — 通すべきもの', () => {
     s[0].未来の項目 = 'なにか';
     assert.ok(broken({ sessions: s }).ok);
   });
+
+  it('floor があれば通り、値を保つ（#2）', () => {
+    const s = valid().sessions as Record<string, unknown>[];
+    s[0].floor = 12;
+    const r = broken({ sessions: s });
+    assert.ok(r.ok, r.ok ? '' : r.reasons.join(' / '));
+    if (r.ok) assert.equal(r.dataset.sessions[0].floor, 12);
+  });
+
+  it('floor が無くても通る。分からないものを推測で埋めない（#2）', () => {
+    const r = parseDataset(valid());
+    assert.ok(r.ok);
+    if (r.ok) assert.equal(r.dataset.sessions[0].floor, undefined);
+  });
+
+  it('tagWeights があれば通り、値を保つ（#2）', () => {
+    const s = valid().sessions as Record<string, unknown>[];
+    s[0].tagWeights = { フード: 3 };
+    const r = broken({ sessions: s });
+    assert.ok(r.ok, r.ok ? '' : r.reasons.join(' / '));
+    if (r.ok) assert.deepEqual(r.dataset.sessions[0].tagWeights, { フード: 3 });
+  });
+
+  it('offsitePrograms が無くても通り、空配列で補う。古いデータには無いため（#2）', () => {
+    const r = parseDataset(valid());
+    assert.ok(r.ok);
+    if (r.ok) assert.deepEqual(r.dataset.offsitePrograms, []);
+  });
+
+  it('妥当な offsitePrograms は通り、値を保つ（#2）', () => {
+    const r = broken({
+      offsitePrograms: [
+        {
+          id: 'flight2026',
+          title: 'フライト大作戦',
+          days: ['9/25'],
+          dayLabel: '9/25（金）',
+          venueLabel: '東京〜茨城〜札幌',
+          category: '交流',
+          desc: '',
+          reason: '移動時間の判定ができません。',
+        },
+      ],
+    });
+    assert.ok(r.ok, r.ok ? '' : r.reasons.join(' / '));
+    if (r.ok) {
+      assert.equal(r.dataset.offsitePrograms.length, 1);
+      assert.deepEqual(r.dataset.offsitePrograms[0].days, ['9/25']);
+    }
+  });
 });
 
 describe('parseDataset — 落とすべきもの', () => {
@@ -197,6 +247,80 @@ describe('parseDataset — 落とすべきもの', () => {
     const r = broken({ walks: [{ from: 'a', to: 'いない会場', minutes: 5 }] });
     assert.equal(r.ok, false);
     if (!r.ok) assert.ok(r.reasons[0].includes('いない会場'));
+  });
+
+  it('floor が整数でなければ拒否する（#2）', () => {
+    const s = valid().sessions as Record<string, unknown>[];
+    s[0].floor = 2.5;
+    assert.equal(broken({ sessions: s }).ok, false);
+  });
+
+  it('floor が現実的な範囲を外れていれば拒否する（#2）', () => {
+    const s = valid().sessions as Record<string, unknown>[];
+    s[0].floor = 999;
+    assert.equal(broken({ sessions: s }).ok, false);
+  });
+
+  it('tagWeights の値が数値でなければ拒否する（#2）', () => {
+    // おすすめの並びに直接効くので、壊れた値を黙って捨てない
+    const s = valid().sessions as Record<string, unknown>[];
+    s[0].tagWeights = { フード: '3' };
+    assert.equal(broken({ sessions: s }).ok, false);
+  });
+
+  it('offsitePrograms に reason が無ければ拒否する（#2）', () => {
+    // 「なぜ予定に入れられないか」を出せないなら載せない
+    const r = broken({
+      offsitePrograms: [
+        {
+          id: 'x',
+          title: 'タイトル',
+          days: ['9/25'],
+          dayLabel: '9/25（金）',
+          venueLabel: 'どこか',
+          category: '',
+          desc: '',
+        },
+      ],
+    });
+    assert.equal(r.ok, false);
+  });
+
+  it('offsitePrograms の days が空なら拒否する（#2）', () => {
+    // どの日に出すかが決まらないものを、黙って全日には出さない
+    const r = broken({
+      offsitePrograms: [
+        {
+          id: 'x',
+          title: 'タイトル',
+          days: [],
+          dayLabel: '9/25（金）',
+          venueLabel: 'どこか',
+          category: '',
+          desc: '',
+          reason: '理由',
+        },
+      ],
+    });
+    assert.equal(r.ok, false);
+  });
+
+  it('offsitePrograms の days に存在しない日があれば拒否する（#2）', () => {
+    const r = broken({
+      offsitePrograms: [
+        {
+          id: 'x',
+          title: 'タイトル',
+          days: ['9/30'],
+          dayLabel: '9/30（月）',
+          venueLabel: 'どこか',
+          category: '',
+          desc: '',
+          reason: '理由',
+        },
+      ],
+    });
+    assert.equal(r.ok, false);
   });
 });
 

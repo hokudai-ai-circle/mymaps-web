@@ -29,10 +29,18 @@
  * ヒアリングで全員が指摘した「初見殺し」には、公式に明記されている `ticket`
  * （要チケット・パスポート／別途申込が必要）で答える。
  * こちらは主観が入らず、しかも「行きたいか」ではなく**「行けるか」**が分かる。
+ *
+ * ## 徒歩圏外のプログラムは offsitePrograms へ（#2）
+ *
+ * 「NoMaps フライト大作戦2026」（9/23〜9/24、東京〜茨城〜札幌）と
+ * 「官民共創合宿 in 芸森ワーサム」（9/23夕方〜9/24朝、札幌市南区・徒歩圏外）は、
+ * 通常の `Session` の前提（1日・徒歩圏の会場）に乗らないため `OFFSITE_PROGRAMS`
+ * に分けてある。載せないと 9/23 に何も無いように見えるが、実際にはこの2件がある。
  */
 
 import type { Category } from '@/constants/theme';
-import type { Dataset, Session, Venue, Walk } from '@/lib/dataset';
+import type { Dataset, OffsiteProgram, Session, Venue, Walk } from '@/lib/dataset';
+import { computeTagWeights } from '@/data/tag-keywords';
 
 /**
  * 型の実体は `lib/dataset.ts` に移した（#58）。
@@ -185,7 +193,7 @@ export const WALKS: Walk[] = [
  *
  * **公式がバッジを付けたら、そちらを正とすること。**
  */
-export const SESSIONS: BundledSession[] = [
+const RAW_SESSIONS: BundledSession[] = [
   // ===== 9/24(木) =====
   {
     id: 's241000',
@@ -193,6 +201,7 @@ export const SESSIONS: BundledSession[] = [
     start: '10:00',
     end: '11:30',
     venueId: 'akarenga',
+    floor: 2,
     title:
       '—私たちはなぜ「協働しなければならないのか」～コレクティブインパクトという実践～',
     speaker: '久保 匠、北村 貴、寺西 康博、比屋根 隆（モデレーター: 宮下 真美）',
@@ -207,6 +216,7 @@ export const SESSIONS: BundledSession[] = [
     start: '14:00',
     end: '15:30',
     venueId: 'akarenga',
+    floor: 2,
     title: '地域を学ぶから、地域をつくるへ ― 若者が戦力になるまちの循環デザイン ―',
     speaker: '加藤 修、赤坂 慧（モデレーター: 浜中 裕之）',
     category: 'SOCIAL',
@@ -220,6 +230,7 @@ export const SESSIONS: BundledSession[] = [
     start: '16:30',
     end: '18:00',
     venueId: 'akarenga',
+    floor: 2,
     title:
       '社会を変えるジェンダー投資 〜草の根アクションや女性視点のビジネスを支える新しい仕組み',
     speaker: '高橋 奈美、田中 沙弥果、久保 匠（モデレーター: 菅原 亜都子）',
@@ -244,6 +255,7 @@ export const SESSIONS: BundledSession[] = [
     start: '08:30',
     end: '09:30',
     venueId: 'hokuyo',
+    floor: 4,
     title: '北海道を「働きがい」のある地域にするには？',
     speaker: '小川 嶺、津山 博恒（モデレーター: 廣岡 俊光）',
     category: 'CAREER',
@@ -257,6 +269,7 @@ export const SESSIONS: BundledSession[] = [
     start: '10:00',
     end: '11:00',
     venueId: 'hokuyo',
+    floor: 4,
     title: '越境人材〜個人の成長と組織の変革〜',
     speaker: '原田 未来、峠 幸寛、岡本 栄理（モデレーター: 吉澤 尚史）',
     category: 'CAREER',
@@ -270,6 +283,7 @@ export const SESSIONS: BundledSession[] = [
     start: '12:00',
     end: '13:30',
     venueId: 'akarenga',
+    floor: 2,
     title: '食を通じた北海道の未来づくり 食の課題解決×食の人材育成',
     speaker: '下國 伸、金高 有里（モデレーター: 久保 匠）',
     category: 'SOCIAL',
@@ -283,6 +297,7 @@ export const SESSIONS: BundledSession[] = [
     start: '14:00',
     end: '15:30',
     venueId: 'akarenga',
+    floor: 2,
     title: 'バスク州×札幌市 〜バスクに学ぶ、札幌の未来戦略〜',
     speaker: '荒川 義人、加藤 萌映、赤坂 慧（モデレーター: 堀内 隆広）',
     category: 'SOCIAL',
@@ -299,6 +314,7 @@ export const SESSIONS: BundledSession[] = [
     start: '15:00',
     end: '16:00',
     venueId: 'hokuyo',
+    floor: 4,
     title: '共創プラットフォーマーが語る、共創の裏側と、その先について',
     speaker: '林 匡宏、棟方 祐介、吉備 友理恵（モデレーター: 阿部 勇士）',
     category: 'CAREER',
@@ -322,6 +338,7 @@ export const SESSIONS: BundledSession[] = [
     start: '16:00',
     end: '16:50',
     venueId: 'acu',
+    floor: 12,
     title:
       'AI時代に、自治体は何を守り、何を任せるのか 〜デジタル庁参与と考える、これからの地域行政〜',
     speaker: '伊藤 伸、玉堀 雄一（モデレーター: 前田 真）',
@@ -338,6 +355,7 @@ export const SESSIONS: BundledSession[] = [
     start: '15:00',
     end: '17:00',
     venueId: 'nissay',
+    floor: 4,
     title: '「超」福祉な共生社会を実現する札幌モデル',
     speaker: '山﨑 晴太郎、秋元 克広、田中 真宏（モデレーター: 加納 尚明）',
     category: 'SUPER WELFARE',
@@ -350,6 +368,61 @@ export const SESSIONS: BundledSession[] = [
 ];
 
 /**
+ * 判定の対象にしないプログラム（#2）。**載せるが、予定には入れられない。**
+ *
+ * `Session` は day を1つしか持てず、venueId は徒歩圏の会場を指す前提でできている。
+ * ここに入るのは、その前提から外れるもの。どちらも9/23〜9/24にまたがるため、
+ * 載せないと9/23が「この日はまだありません」になってしまう。
+ */
+export const OFFSITE_PROGRAMS: OffsiteProgram[] = [
+  {
+    id: 'flight2026',
+    title: 'NoMaps フライト大作戦2026',
+    days: ['9/23', '9/24'],
+    dayLabel: '9/23（水）〜9/24（木）',
+    timeLabel: '09:00〜19:00',
+    venueLabel: '東京〜茨城〜札幌',
+    category: '交流/実験/連携事業',
+    desc:
+      '茨城空港から新千歳空港まで航空機を1機貸切にして移動する、2日間のプログラムです。' +
+      '4コース・177席の定員制で、別途申込が必要です。',
+    ticket: '別途申込が必要',
+    url: 'https://no-maps.jp/program/flight2026/',
+    // **「アプリの限界」ではなく「プログラムの性質」として書く**
+    reason:
+      '会場が複数の都市にまたがり、2日間にわたるため、移動時間の判定ができません。',
+  },
+  {
+    id: 'geimori2609231600',
+    title: '官民共創合宿 in 芸森ワーサム',
+    // 9/23の夕方から翌朝までの泊まりがけ。**1日に収まらない**
+    days: ['9/23', '9/24'],
+    dayLabel: '9/23（水）〜9/24（木）',
+    timeLabel: '16:00〜翌10:00',
+    venueLabel: '芸森ワーサム（GEIMORI W-AWESOME）／札幌市南区芸術の森3丁目',
+    category: 'GOVERNMENT',
+    desc: 'GOVERNMENT公式オープニング前夜祭。官民共創に取り組む全国の自治体職員と民間プレイヤーが芸森ワーサムに集い、一晩まるごと語り合う合宿です。北海道産食材溢れるBBQ、焚き火、薪サウナでの耐久壁打ち——普段の交流会では語り尽くせない「本当の課題」と「本音の構想」を持ち寄り、翌日から始まる本編へつながる共創の種を育てます。エントリーフォームからご応募ください。\n\n※応募多数の場合は選考により参加者を決定いたしますので予めご了承ください。\n\nエントリーはこちらから',
+    ticket: 'その他（エントリーフォームからの応募）',
+    url: 'https://no-maps.jp/government/2609231600/',
+    reason:
+      '会場が中心部から離れており、前夜から翌朝にかけての合宿のため、移動時間の判定ができません。',
+  },
+];
+
+/**
+ * セッション。**興味タグの重みを、ここで付ける（#2）。**
+ *
+ * 重みはタイトルと説明文から `computeTagWeights` が計算する（`data/tag-keywords.ts`）。
+ * 手で1件ずつ付けないのは、公式が新しいプログラムを追加公開するたびに
+ * 付け忘れる心配を無くすため。
+ */
+export const SESSIONS: BundledSession[] = RAW_SESSIONS.map((s) => ({
+  ...s,
+  tagWeights: computeTagWeights(`${s.title}
+${s.desc}`),
+}));
+
+/**
  * 同梱データの版。**公開するJSONの `dataVersion` と同じ土俵で比べる。**
  *
  * 🔴 **`data/event.ts` を書き換えたら、必ずこの数を1つ増やすこと。**
@@ -359,8 +432,13 @@ export const SESSIONS: BundledSession[] = [
  * 逆に、ここを大きくしておけば「アプリを更新したら必ず同梱データが勝つ」。
  * どちらが新しいかを端末の時計ではなくこの数で決めているのは、
  * 時計はずれるうえ利用者が変えられるため。
+ *
+ * ⚠️ **公開データ（`event-v1.json`）の版は15まで進んでいる。** ここを15まで
+ * 追いつかせていないのは、公開側にしかない9件のセッションをまだ転記していない
+ * ため（#2はスキーマの追いつきが目的で、セッション件数はスコープ外）。
+ * 同梱はあくまでオフライン時のフォールバックで、通信できれば公開側（15）が勝つ。
  */
-export const BUNDLED_DATA_VERSION = 3;
+export const BUNDLED_DATA_VERSION = 4;
 
 /**
  * アプリに同梱しているデータ一式。**通信できなくても必ずこれで動く。**
@@ -384,4 +462,5 @@ export const BUNDLED: Dataset = {
   venues: VENUES,
   walks: WALKS,
   sessions: SESSIONS,
+  offsitePrograms: OFFSITE_PROGRAMS,
 };

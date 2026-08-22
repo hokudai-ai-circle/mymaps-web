@@ -45,6 +45,53 @@ export type Venue = {
  */
 export type Walk = { from: string; to: string; minutes: number };
 
+/**
+ * 判定の対象にしないプログラム。**載せるが、予定には入れられない。**
+ *
+ * ## なぜ Session と分けるのか
+ *
+ * 公式のプログラムには、いまの `Session` では表せないものがある
+ * （東京〜茨城〜札幌の2日間の貸切フライト、前夜から翌朝までの合宿など）。
+ * `Session` は `day` を1つしか持てず、`venueId` は徒歩圏の会場を指す前提で
+ * できている。無理に会場を作ると、隣の予定で「徒歩時間が未登録です」と出る。
+ * 飛行機に対してこの文言は明確に誤り。
+ *
+ * ## かといって、載せないのも違う
+ *
+ * 載せないと、その日にプログラムが無いように見え、**行けない予定を勧める。**
+ * **なので「載せるが、予定には入れられない」形にした。**
+ * 判定エンジンには一切届かないので、中核のロジックに手を入れずに済む（#2）。
+ */
+export type OffsiteProgram = {
+  id: string;
+  title: string;
+  /**
+   * どの日に出すか。**`days` の id を並べる。複数日にまたがるものがある。**
+   *
+   * 🔴 **表示のためだけの情報ではない。** これが無いと、徒歩圏外の
+   * プログラムしか無い日が「空の日」に見える。
+   */
+  days: string[];
+  /** 「9/23（水）〜9/24（木）」のように、画面にそのまま出す文字列 */
+  dayLabel: string;
+  /** 「09:00〜19:00」など。分からなければ入れない */
+  timeLabel?: string;
+  /** 「東京〜茨城〜札幌」「札幌市南区 芸森ワーサム」など */
+  venueLabel: string;
+  category: string;
+  desc: string;
+  ticket?: string;
+  url?: string;
+  applyUrl?: string;
+  /**
+   * **なぜ予定に入れられないのか。画面にそのまま出す。**
+   *
+   * 「このアプリの限界です」ではなく「このプログラムの性質です」と
+   * 読める書き方にすること。前者だと、利用者はアプリ全体を疑い始める。
+   */
+  reason: string;
+};
+
 export type Day = { id: string; label: string; weekday: string };
 
 /**
@@ -67,6 +114,23 @@ export type Session = {
   title: string;
   speaker: string;
   category: string;
+  /**
+   * 部屋のある階。**縦移動の計算に使う**（`lib/elevator.ts`）。
+   *
+   * **公式に記載が無ければ、入れないこと。** 推測で埋めると、
+   * 根拠の無い分数で「間に合う／間に合わない」を断言することになる。
+   */
+  floor?: number;
+  /**
+   * 興味タグごとの加点。**おすすめの精度は、ここで決まる。**
+   *
+   * 以前は「興味タグ → カテゴリ」の対応表で加点していたが、10種類のタグが
+   * 2つのカテゴリに潰れ、選び分ける意味がほとんど無かった。
+   * セッションごとに持たせれば、公式が新しいカテゴリを出しても対応表を
+   * 直す必要がない。**無い場合は、従来どおりカテゴリで加点する**
+   * （`lib/recommend.ts`）ので、移行の途中でも壊れない。
+   */
+  tagWeights?: Record<string, number>;
   desc: string;
   /** 受付締切。**開始時刻より前でなければならない** */
   reception?: string;
@@ -98,6 +162,11 @@ export type Dataset = {
   venues: Venue[];
   walks: Walk[];
   sessions: Session[];
+  /**
+   * 判定の対象にしないプログラム。**古いデータには無いので、必ず空配列で補う。**
+   * 「形には厳しく、欠けには寛容に」の方針どおり、無くても検証は通す。
+   */
+  offsitePrograms: OffsiteProgram[];
 };
 
 /**
@@ -314,6 +383,44 @@ export function parseDataset(input: unknown): ParseResult {
       }
     }
 
+    /*
+      階。**入っていないのは正常。** 公式に記載が無い会場があり、
+      その場合は縦移動を上乗せしない（`lib/elevator.ts`）。
+      入っているのに数でない・現実的でない値なら、黙って捨てずに止める。
+    */
+    const floor = raw.floor;
+    if (floor !== undefined && floor !== null) {
+      if (typeof floor !== 'number' || !Number.isInteger(floor)) {
+        fail(`${where} の floor が整数ではありません（${String(floor)}）`);
+        continue;
+      }
+      if (floor < -5 || floor > 60) {
+        fail(`${where} の floor が現実的な範囲を外れています（${floor}）`);
+        continue;
+      }
+    }
+
+    /*
+      興味タグごとの加点。**壊れた値は黙って捨てず、そのセッションを落とす。**
+      おすすめの並びに直接効くので、「なぜか上位に出ない」を作らない。
+    */
+    let tagWeights: Record<string, number> | undefined;
+    if (raw.tagWeights !== undefined && raw.tagWeights !== null) {
+      if (!isObject(raw.tagWeights)) {
+        fail(`${where} の tagWeights がオブジェクトではありません`);
+        continue;
+      }
+      const entries = Object.entries(raw.tagWeights as Record<string, unknown>);
+      const bad = entries.find(([, v]) => !isFiniteNumber(v));
+      if (bad) {
+        fail(`${where} の tagWeights.${bad[0]} が数値ではありません`);
+        continue;
+      }
+      if (entries.length > 0) {
+        tagWeights = Object.fromEntries(entries as [string, number][]);
+      }
+    }
+
     sessions.push({
       id: raw.id,
       day: raw.day,
@@ -324,6 +431,8 @@ export function parseDataset(input: unknown): ParseResult {
       speaker: typeof raw.speaker === 'string' ? raw.speaker : '',
       category: raw.category,
       desc: typeof raw.desc === 'string' ? raw.desc : '',
+      ...(typeof floor === 'number' ? { floor } : {}),
+      ...(tagWeights ? { tagWeights } : {}),
       ...(reception ? { reception } : {}),
       ...(optionalString(raw.ticket) ? { ticket: raw.ticket as string } : {}),
       ...(optionalString(raw.applyUrl) ? { applyUrl: raw.applyUrl as string } : {}),
@@ -333,6 +442,63 @@ export function parseDataset(input: unknown): ParseResult {
 
   if (new Set(sessions.map((s) => s.id)).size !== sessions.length) {
     fail('セッションのIDが重複しています');
+  }
+
+  /*
+    判定対象外のプログラム。**無くても通す。**
+    この形が生まれる前に配ったデータには存在しないし、
+    ここで落とすと、古いデータを読んでいる端末がアプリごと止まる。
+  */
+  const offsitePrograms: OffsiteProgram[] = [];
+  const rawOffsite = (input as { offsitePrograms?: unknown }).offsitePrograms;
+  if (rawOffsite !== undefined) {
+    if (!Array.isArray(rawOffsite)) {
+      fail('offsitePrograms が配列ではありません');
+    } else {
+      for (const [i, raw] of rawOffsite.entries()) {
+        if (!isObject(raw)) {
+          fail(`offsitePrograms[${i}] がオブジェクトではありません`);
+          continue;
+        }
+        const where = isNonEmptyString(raw.id) ? raw.id : `offsitePrograms[${i}]`;
+        // **reason は必須。** 「なぜ予定に入れられないか」を出せないなら載せない
+        if (
+          !isNonEmptyString(raw.id) ||
+          !isNonEmptyString(raw.title) ||
+          !isNonEmptyString(raw.dayLabel) ||
+          !isNonEmptyString(raw.venueLabel) ||
+          !isNonEmptyString(raw.reason)
+        ) {
+          fail(`${where} の id/title/dayLabel/venueLabel/reason が足りません`);
+          continue;
+        }
+        // **出す日が分からないものは載せない。** 黙って全日に出すほうが悪い
+        const offDays = Array.isArray(raw.days) ? raw.days.filter(isNonEmptyString) : [];
+        if (offDays.length === 0) {
+          fail(`${where} の days が空です（どの日に出すかが決まりません）`);
+          continue;
+        }
+        const unknownDay = offDays.find((d) => !dayIds.has(d));
+        if (unknownDay !== undefined) {
+          fail(`${where} の days に、days に無い日が入っています（${unknownDay}）`);
+          continue;
+        }
+        offsitePrograms.push({
+          id: raw.id,
+          title: raw.title,
+          days: offDays,
+          dayLabel: raw.dayLabel,
+          venueLabel: raw.venueLabel,
+          reason: raw.reason,
+          category: isNonEmptyString(raw.category) ? raw.category : '',
+          desc: typeof raw.desc === 'string' ? raw.desc : '',
+          ...(optionalString(raw.timeLabel) ? { timeLabel: raw.timeLabel as string } : {}),
+          ...(optionalString(raw.ticket) ? { ticket: raw.ticket as string } : {}),
+          ...(optionalString(raw.url) ? { url: raw.url as string } : {}),
+          ...(optionalString(raw.applyUrl) ? { applyUrl: raw.applyUrl as string } : {}),
+        });
+      }
+    }
   }
 
   if (reasons.length > 0) return { ok: false, reasons };
@@ -348,6 +514,7 @@ export function parseDataset(input: unknown): ParseResult {
       venues,
       walks,
       sessions,
+      offsitePrograms,
     },
   };
 }

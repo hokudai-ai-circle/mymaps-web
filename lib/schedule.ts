@@ -10,6 +10,7 @@
 
 import type { Dataset, Session, Venue } from '@/lib/dataset';
 import { walkMinutesBetween } from '@/lib/dataset';
+import { verticalMinutesBetween } from '@/lib/elevator';
 
 /** "HH:MM" → 0時からの経過分 */
 export function toMinutes(hhmm: string): number {
@@ -37,8 +38,15 @@ export type TravelInfo = {
   status: TravelStatus;
   /** 直前の予定（なければ null） */
   from: Session | null;
-  /** 徒歩の所要分。**未登録なら null**（status は 'unknown' になる） */
+  /**
+   * 移動の所要分。**未登録なら null**（status は 'unknown' になる）。
+   * **水平の徒歩と建物内の縦移動を足した合計。** 判定はこの値で行う。
+   */
   walkMinutes: number | null;
+  /** 内訳のうち、水平の徒歩だけ。表示用 */
+  horizontalMinutes: number;
+  /** 内訳のうち、建物内の縦移動だけ。0なら階が分からないか同じ階 */
+  verticalMinutes: number;
   /** 前の予定の終了から次の開始までの分 */
   gapMinutes: number;
   /** gap - walk。マイナスなら足りない */
@@ -116,6 +124,8 @@ export function evaluateTravel(
     status: 'first',
     from: null,
     walkMinutes: 0,
+    horizontalMinutes: 0,
+    verticalMinutes: 0,
     gapMinutes: 0,
     slackMinutes: 0,
     receptionShortMinutes: 0,
@@ -126,11 +136,11 @@ export function evaluateTravel(
 
   if (!prev) return base;
 
-  const walk = walkMinutesBetween(dataset, prev.venueId, next.venueId);
+  const horizontal = walkMinutesBetween(dataset, prev.venueId, next.venueId);
 
   // 徒歩時間が未登録なら、間に合うかどうかは判定できない。
   // ここで既定値を当てて計算を続けると、根拠のない数字で断言することになる。
-  if (walk === null) {
+  if (horizontal === null) {
     return {
       ...base,
       status: 'unknown',
@@ -140,6 +150,18 @@ export function evaluateTravel(
       appliedLeaveAt: prevLeaveAt ?? null,
     };
   }
+
+  /*
+    **建物の中の移動を足す。** 会場は建物の単位で持っているので、
+    水平の徒歩時間（Google マップの計測値）は建物の入口までしか含まない。
+    建物が違えば「降りて・歩いて・上がる」。同じ建物なら階差だけ。
+  */
+  const vertical = verticalMinutesBetween(
+    prev.venueId === next.venueId,
+    prev.floor,
+    next.floor,
+  );
+  const walk = horizontal + vertical;
 
   // 早退が登録されていれば、本来の終了ではなく退出時刻を起点に計算する
   const prevEnd = prevLeaveAt ? toMinutes(prevLeaveAt) : toMinutes(prev.end);
@@ -165,6 +187,8 @@ export function evaluateTravel(
     ...base,
     from: prev,
     walkMinutes: walk,
+    horizontalMinutes: horizontal,
+    verticalMinutes: vertical,
     gapMinutes: gap,
     slackMinutes: slack,
     leaveBy: earlyLeave > 0 ? toHHMM(leaveByMin) : null,
@@ -460,17 +484,27 @@ export function travelLabel(t: TravelInfo): string {
     return '会場間の徒歩時間が未登録です。ご自身で確認してください。';
   }
   const walk = t.walkMinutes ?? 0;
+  /*
+    **内訳を出すのは、建物内の移動があるときだけ。**
+    同じ階どうしの移動で「徒歩3分（うち建物内0分）」と書いても読みにくいだけ。
+    縦移動が乗っているときは、なぜ数字が大きいのかを説明する必要がある。
+  */
+  const move =
+    t.verticalMinutes > 0
+      ? `移動${walk}分（徒歩${t.horizontalMinutes}分＋建物内${t.verticalMinutes}分）`
+      : `徒歩${walk}分`;
+
   switch (t.status) {
     case 'first':
       return 'この日最初の予定になります。';
     case 'ok':
-      return `徒歩${walk}分・余裕${t.slackMinutes}分`;
+      return `${move}・余裕${t.slackMinutes}分`;
     case 'exact':
-      return `徒歩${walk}分・ちょうど間に合う`;
+      return `${move}・ちょうど間に合う`;
     case 'short':
-      return `徒歩${walk}分・${Math.abs(t.slackMinutes)}分足りません`;
+      return `${move}・${Math.abs(t.slackMinutes)}分足りません`;
     case 'reception':
-      return `徒歩${walk}分・受付に間に合いません（${t.receptionShortMinutes}分超過）`;
+      return `${move}・受付に間に合いません（${t.receptionShortMinutes}分超過）`;
     case 'overlap':
       return '予定が重なっています';
   }
