@@ -21,7 +21,7 @@ import styles from './page.module.css';
  */
 export default function SearchScreen() {
   const router = useRouter();
-  const { dataset, addSession, isPlanned, check } = useApp();
+  const { dataset, addSession, removeSession, isPlanned, check } = useApp();
 
   const [query, setQuery] = useState('');
   const [snack, setSnack] = useState<string | null>(null);
@@ -116,12 +116,16 @@ export default function SearchScreen() {
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (!planned) handleAdd(s.id);
+                      if (planned) {
+                        removeSession(s.id);
+                        notify('予定から外しました');
+                      } else {
+                        handleAdd(s.id);
+                      }
                     }}
-                    disabled={planned}
                     className={`${styles.addBtn} ${planned ? styles.addBtnDone : ''}`}
                   >
-                    {planned ? '追加済み' : '＋ 追加'}
+                    {planned ? '外す' : '＋ 追加'}
                   </button>
                 }
               />
