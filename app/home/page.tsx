@@ -182,32 +182,6 @@ export default function HomeTab() {
           </button>
         )}
 
-        {/*
-          🔴 **徒歩圏外のプログラムも、その日の一覧に出す（#2）。**
-          予定には追加できないので、追加ボタンは出さず、公式ページへ渡す。
-        */}
-        {offsiteToday.length > 0 && (
-          <div className={styles.offsiteBox}>
-            <p className={styles.offsiteHead}>予定に入れられないプログラム</p>
-            {offsiteToday.map((o) => (
-              <div key={o.id} className={styles.offsite}>
-                <span className={styles.offsiteWhen}>
-                  {o.timeLabel ? `${o.dayLabel} ${o.timeLabel}` : o.dayLabel}
-                </span>
-                <p className={styles.offsiteTitle}>{o.title}</p>
-                <span className={styles.offsiteVenue}>{o.venueLabel}</span>
-                {o.ticket && <span className={styles.offsiteTicket}>{o.ticket}</span>}
-                <p className={styles.offsiteReason}>{o.reason}</p>
-                {o.url && (
-                  <a href={o.url} target="_blank" rel="noopener noreferrer" className={styles.offsiteLink}>
-                    公式ページで詳細を見る
-                  </a>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
         {list.length === 0 && offsiteToday.length === 0 && (
           <div className={styles.empty}>
             <p className={styles.emptyTitle}>
@@ -281,6 +255,28 @@ export default function HomeTab() {
 
         {hasMore && (
           <Button label="その他のおすすめも見る" variant="ghost" onPress={() => setMode('すべてのイベント')} />
+        )}
+
+        {offsiteToday.length > 0 && (
+          <div className={styles.offsiteBox}>
+            <p className={styles.offsiteHead}>予定に入れられないプログラム</p>
+            {offsiteToday.map((o) => (
+              <div key={o.id} className={styles.offsite}>
+                <span className={styles.offsiteWhen}>
+                  {o.timeLabel ? `${o.dayLabel} ${o.timeLabel}` : o.dayLabel}
+                </span>
+                <p className={styles.offsiteTitle}>{o.title}</p>
+                <span className={styles.offsiteVenue}>{o.venueLabel}</span>
+                {o.ticket && <span className={styles.offsiteTicket}>{o.ticket}</span>}
+                <p className={styles.offsiteReason}>{o.reason}</p>
+                {o.url && (
+                  <a href={o.url} target="_blank" rel="noopener noreferrer" className={styles.offsiteLink}>
+                    公式ページで詳細を見る
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
         )}
 
         {/*
