@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button, VenueDot } from '@/components/ui';
+import { DayStrip } from '@/components/DayStrip';
 import { walkMinutesBetween } from '@/lib/dataset';
 import { isLocationStale, minutesSince, walkMinutesToVenue } from '@/lib/geo';
 import { buildMapView } from '@/lib/sapporoGrid';
@@ -52,7 +53,7 @@ export default function MapTab() {
 function MapTabContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { dataset, day, plan, location, locationStatus, locationAt, requestLocation } = useApp();
+  const { dataset, day, setDay, plan, location, locationStatus, locationAt, requestLocation } = useApp();
 
   /**
    * 画面を開いたら取り直す。**すでに許可されている場合だけ。**
@@ -353,7 +354,8 @@ function MapTabContent() {
           )}
         </div>
 
-        <p className={styles.listTitle}>{`${day} のセッション`}</p>
+        <DayStrip day={day} onSelect={setDay} />
+        <p className={styles.listTitle}>この会場のセッション</p>
         {todays.length === 0 && <p className={styles.none}>この日、この会場のセッションはありません。</p>}
         {todays.map((s) => (
           <button key={s.id} type="button" className={styles.row} onClick={() => router.push(`/session?id=${s.id}`)}>
