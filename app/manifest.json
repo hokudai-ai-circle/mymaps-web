@@ -1,0 +1,16 @@
+{
+  "name": "MyMaps",
+  "short_name": "MyMaps",
+  "description": "NoMaps（札幌の多産業クリエイティブ・カンファレンス）の非公式ファンアプリ。",
+  "start_url": "/mymaps-web/home",
+  "display": "standalone",
+  "background_color": "#0E7C7B",
+  "theme_color": "#0E7C7B",
+  "icons": [
+    {
+      "src": "/mymaps-web/icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
+    }
+  ]
+}
