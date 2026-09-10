@@ -224,6 +224,25 @@ function MapTabContent() {
   const roadH = Math.max(3, Math.round(box.height * view.blockHeight * 0.22));
 
   /*
+    🔴 **通りの名前を、読める間隔まで間引く。**
+
+    会場が4つだった頃は範囲が狭く、全部の通りに名前を出しても重ならなかった。
+    **15会場では北9条〜南9条・西18〜西1が入り、名前が団子になって
+    1本も読めなくなった**（実機で確認）。
+
+    街区の実寸から、文字が重ならない本数を出して間引く。
+    **拡大すれば街区が広がるので、自動的に本数が戻る。**
+
+    ⚠️ **間引くのは名前だけ。通りそのものは全部描く。**
+    地図らしく見えるかどうかは塗り分けで決まるので、線を減らすと地図でなくなる。
+  */
+  const blockPxY = box.height * view.blockHeight;
+  const blockPxX = box.width * view.blockWidth;
+  /** 文字の高さぶん（約14px）と、「西18」の幅ぶん（約30px）を空ける */
+  const labelStepY = Math.max(1, Math.ceil(14 / Math.max(1, blockPxY)));
+  const labelStepX = Math.max(1, Math.ceil(30 / Math.max(1, blockPxX)));
+
+  /*
     🔴 **倍率を上げたら、選んでいる会場を窓の中央へ持ってくる。**
 
     そうしないと、拡大した瞬間に**左上の隅**が映る。会場を選んでから
@@ -326,18 +345,20 @@ function MapTabContent() {
                 }}
               />
             ))}
-            {view.streets.map((st) => (
+            {view.streets.map((st, i) => (
               <span
                 key={`sl-${st.label}`}
+                hidden={i % labelStepY !== 0}
                 className={styles.streetLabel}
                 style={{ top: `${st.at * 100}%`, left: scroll.left + 4 }}
               >
                 {st.label}
               </span>
             ))}
-            {view.avenues.map((av) => (
+            {view.avenues.map((av, i) => (
               <span
                 key={`al-${av.label}`}
+                hidden={i % labelStepX !== 0}
                 className={styles.avenueLabel}
                 style={{
                   left: `${av.at * 100}%`,
