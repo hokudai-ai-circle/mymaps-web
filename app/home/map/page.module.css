@@ -19,7 +19,8 @@
   地は街区の色。**ここが塗られていることが「地図らしさ」の正体で、
   通りは白く抜くことで浮かび上がる。**
 */
-.canvas {
+/* 窓。高さと角丸と枠線はこちら。**中身がどれだけ大きくてもここは変わらない** */
+.canvasFrame {
   position: relative;
   height: 360px;
   margin: 0 var(--space-lg);
@@ -27,6 +28,41 @@
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-teal-line);
   overflow: hidden;
+}
+
+/* スクロールする層。等倍のときは JS 側で overflow: hidden にしている */
+.canvasScroll {
+  width: 100%;
+  height: 100%;
+}
+
+/* 地図そのもの。幅と高さは倍率で決まるので、ここには書かない */
+.canvas {
+  position: relative;
+  background: var(--color-map-block);
+}
+
+.zoomBar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.zoomChip {
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.zoomChipActive {
+  background: var(--color-teal);
+  border-color: var(--color-teal);
+  color: #fff;
 }
 
 /* 東西の通り */
@@ -55,18 +91,18 @@
   background: var(--color-map-river);
 }
 
+/* left は JS 側で決める（スクロールに追随させるため） */
 .streetLabel {
   position: absolute;
-  left: 4px;
   margin-top: -14px;
   color: var(--color-map-label);
   font-size: 9px;
   font-weight: 600;
 }
 
+/* top は JS 側で決める（スクロールに追随させるため） */
 .avenueLabel {
   position: absolute;
-  bottom: 3px;
   margin-left: 3px;
   color: var(--color-map-label);
   font-size: 9px;
@@ -348,4 +384,59 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* 地図に出せていない会場の帯。**消さずに、名前だけでも出す** */
+.offMapBar {
+  margin: var(--space-sm) var(--space-lg) 0;
+  padding: var(--space-sm);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.offMapHead {
+  margin: 0 0 6px;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.offMapRow {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+}
+
+.offMapChip {
+  flex: none;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.offMapChipActive {
+  background: var(--color-teal);
+  border-color: var(--color-teal);
+  color: #fff;
+}
+
+/*
+  会場についての断り書き。
+  警告色は使わない。**あれは「間に合わない」のための色**で、
+  ここは間違いではなく断り書き。左の罫線1本と地の色で、本文と分ける。
+*/
+.cardNote {
+  margin: 0;
+  padding: 6px 8px;
+  border-left: 3px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 18px;
 }

@@ -26,6 +26,32 @@ const PIN_DOT_MAX = 44;
 const CANVAS_HEIGHT = 360;
 
 /**
+ * 地図の倍率。**3段しかない。**
+ *
+ * 🔴 **公式が会場を15に増やし、等倍では街区が20px前後になった。**
+ * **会場ピンの丸は24px。街区より大きい。** どの会場がどの区画にあるのか、
+ * 等倍では読めない。会場が4つだった頃は36px前後あった。
+ *
+ * ⚠️ **「その日に使う会場だけを枠に入れる」案では足りない**（アプリ側で実測）。
+ * 5日のうち3日が、その日の会場だけに絞っても足りないままだった。
+ *
+ * ## なぜピンチではなく3段なのか
+ *
+ * **ピンは絶対配置のまま、地図の実寸だけを倍にしている。**
+ * だから拡大してもピンと会場名の大きさは変わらず、**逆スケールの補正が要らない。**
+ * スクロールは `overflow: auto` に任せるので、**境界の制限も自前で書かなくていい。**
+ * ピンのクリックとドラッグの取り合いも起きない。
+ *
+ * 自由な倍率は要らない。**この地図の目的は「会場どうしの位置関係が
+ * 一目で分かること」だけ**（lib/sapporoGrid.ts 冒頭）。
+ */
+const ZOOMS = [
+  { scale: 1, label: '広域' },
+  { scale: 2, label: '標準' },
+  { scale: 3, label: '拡大' },
+] as const;
+
+/**
  * 会場マップ。
  *
  * 会場の位置関係と、徒歩時間（判定エンジンの入力）を確認できることを優先する（#4）。
@@ -129,6 +155,39 @@ function MapTabContent() {
   }, []);
 
   /*
+    倍率と、窓の内側の幅。**窓は倍率で変わらない**ので box とは別に測る。
+    box は中身（拡大後の地図）の実寸で、窓はそれを覗く枠。
+  */
+  const [zoomIndex, setZoomIndex] = useState(0);
+  const zoom = ZOOMS[zoomIndex].scale;
+  const frameRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [frameW, setFrameW] = useState(320);
+
+  /*
+    🔴 **通りの名前を、窓の縁に貼り付けておくために要る。**
+
+    「北4条」は地図の左端、「西7」は下端に置いている。地図と一緒に流れると
+    **拡大した瞬間に窓の外へ出て、「条」だけが見える壊れた表示になる。**
+    スクロールした量だけ内側へずらして、常に窓の縁に見えるようにする。
+
+    ⚠️ **会場のピンは追随させない。** あれは場所そのものなので、
+    地図と一緒に動くのが正しい。動かしてはいけないのは**目盛りのほう。**
+  */
+  const [scroll, setScroll] = useState({ left: 0, top: 0 });
+
+  useEffect(() => {
+    const el = frameRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver((entries) => {
+      const { width } = entries[0].contentRect;
+      setFrameW((prev) => (Math.abs(prev - width) < 1 ? prev : width));
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  /*
     会場と現在地が全部入る枠を決める。
 
     🔴 **会場は実測の緯度経度で置く。** 住所どおりの格子点に置くと、
@@ -143,14 +202,78 @@ function MapTabContent() {
     return buildMapView(points, box.width / box.height);
   }, [dataset.venues, location, box.width, box.height]);
 
+  /*
+    🔴 **座標が無い会場を、地図に嘘の位置で描かない。**
+
+    以前は座標が無ければ `x`/`y`（手で置いた相対座標）に落としていたが、
+    **新しい会場の x/y は 0 なので、全部が左上の角に重なった。**
+    公式は会期が近づくほど会場を足す。**「まだ測っていない」は通常の状態。**
+
+    地図から消したままにもしない。**消えたことに気づけないと
+    「載っていない＝無い」と読まれる。** 地図のすぐ下に名前を並べ、
+    押せば選べるようにする。会場カードの中身は地図に出ているものと変わらない。
+  */
+  const onMap = dataset.venues.filter(
+    (v): v is typeof v & { coords: NonNullable<typeof v.coords> } =>
+      v.coords !== undefined,
+  );
+  const offMap = dataset.venues.filter((v) => v.coords === undefined);
+
   /** 通りの太さ。街区の1割ほど。**枠が広がると相対的に細くなる** */
   const roadW = Math.max(3, Math.round(box.width * view.blockWidth * 0.22));
   const roadH = Math.max(3, Math.round(box.height * view.blockHeight * 0.22));
 
+  /*
+    🔴 **倍率を上げたら、選んでいる会場を窓の中央へ持ってくる。**
+
+    そうしないと、拡大した瞬間に**左上の隅**が映る。会場を選んでから
+    拡大するのは「そこを大きく見たい」ときなので、
+    **選んだ会場が画面の外にある拡大は、使えない拡大になる。**
+
+    ⚠️ **なめらかに動かさない（behavior は既定の 'auto'）。**
+    smooth は毎フレーム進む方式で、**タブが裏にあるあいだ止まる。**
+    倍率のボタンは「そこを見たい」ときに押すので、待たせる意味もない。
+
+    ⚠️ **依存は倍率だけ。** 会場を選び直すたびに動かすと、
+    **もう見えているピンのために地図が動く。**
+  */
+  useEffect(() => {
+    const el = scrollRef.current;
+    const c = picked?.coords;
+    if (!el || !c) return;
+    const at = view.place(c);
+    el.scrollTo({
+      left: Math.max(0, at.x * frameW * zoom - frameW / 2),
+      top: Math.max(0, at.y * CANVAS_HEIGHT * zoom - CANVAS_HEIGHT / 2),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [zoom]);
+
   return (
     <div className={styles.screen}>
+      {/*
+        🔴 **倍率のボタンは、行を増やさずに見出しの行へ入れる。**
+
+        地図の中に浮かせるのは駄目（枠は会場が全部入るように決めているので
+        **どの隅にもピンが来て**、重なって押せなくなる）。
+        地図の下に1行足すと、その分だけ下の中身が画面から出る。
+      */}
       <div className={styles.header}>
         <h1 className={styles.title}>会場マップ</h1>
+        <div className={styles.zoomBar}>
+          {ZOOMS.map((z, i) => (
+            <button
+              key={z.scale}
+              type="button"
+              onClick={() => setZoomIndex(i)}
+              aria-pressed={i === zoomIndex}
+              aria-label={`地図の倍率 ${z.label}${i === zoomIndex ? '（選択中）' : ''}`}
+              className={`${styles.zoomChip} ${i === zoomIndex ? styles.zoomChipActive : ''}`}
+            >
+              {z.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/*
@@ -160,97 +283,151 @@ function MapTabContent() {
 
         描く順は 下から 通り → 公園 → 川 → 名前 → 会場。
       */}
-      <div className={styles.canvas} ref={canvasRef}>
-        {view.streets.map((st) => (
+      {/*
+        🔴 **窓と中身を分ける。** 外の div が窓（高さ固定・角丸・枠線）、
+        中の div が地図そのもので、倍率のぶんだけ実寸が大きくなる。
+        スクロールは `overflow: auto` に任せる。**境界の制限を自前で書かない。**
+      */}
+      <div className={styles.canvasFrame} ref={frameRef}>
+        <div
+          className={styles.canvasScroll}
+          ref={scrollRef}
+          onScroll={(e) => {
+            const el = e.currentTarget;
+            setScroll({ left: el.scrollLeft, top: el.scrollTop });
+          }}
+          // 等倍のときは全部入っているので、動かせないほうが迷わない
+          style={{ overflow: zoom > 1 ? 'auto' : 'hidden' }}
+        >
           <div
-            key={`s-${st.label}`}
-            className={`${styles.road} ${st.park ? styles.park : ''}`}
-            style={{
-              top: `${st.at * 100}%`,
-              height: st.park ? roadH * 2.4 : roadH,
-              marginTop: -(st.park ? roadH * 2.4 : roadH) / 2,
-            }}
-          />
-        ))}
-        {view.avenues.map((av) => (
-          <div
-            key={`a-${av.label}`}
-            className={`${styles.roadV} ${av.river ? styles.river : ''}`}
-            style={{
-              left: `${av.at * 100}%`,
-              width: av.river ? roadW * 1.2 : roadW,
-              marginLeft: -(av.river ? roadW * 1.2 : roadW) / 2,
-            }}
-          />
-        ))}
-        {view.streets.map((st) => (
-          <span key={`sl-${st.label}`} className={styles.streetLabel} style={{ top: `${st.at * 100}%` }}>
-            {st.label}
-          </span>
-        ))}
-        {view.avenues.map((av) => (
-          <span key={`al-${av.label}`} className={styles.avenueLabel} style={{ left: `${av.at * 100}%` }}>
-            {av.label}
-          </span>
-        ))}
+            className={styles.canvas}
+            ref={canvasRef}
+            style={{ width: frameW * zoom, height: CANVAS_HEIGHT * zoom }}
+          >
+            {view.streets.map((st) => (
+              <div
+                key={`s-${st.label}`}
+                className={`${styles.road} ${st.park ? styles.park : ''}`}
+                style={{
+                  top: `${st.at * 100}%`,
+                  height: st.park ? roadH * 2.4 : roadH,
+                  marginTop: -(st.park ? roadH * 2.4 : roadH) / 2,
+                }}
+              />
+            ))}
+            {view.avenues.map((av) => (
+              <div
+                key={`a-${av.label}`}
+                className={`${styles.roadV} ${av.river ? styles.river : ''}`}
+                style={{
+                  left: `${av.at * 100}%`,
+                  width: av.river ? roadW * 1.2 : roadW,
+                  marginLeft: -(av.river ? roadW * 1.2 : roadW) / 2,
+                }}
+              />
+            ))}
+            {view.streets.map((st) => (
+              <span
+                key={`sl-${st.label}`}
+                className={styles.streetLabel}
+                style={{ top: `${st.at * 100}%`, left: scroll.left + 4 }}
+              >
+                {st.label}
+              </span>
+            ))}
+            {view.avenues.map((av) => (
+              <span
+                key={`al-${av.label}`}
+                className={styles.avenueLabel}
+                style={{
+                  left: `${av.at * 100}%`,
+                  top: scroll.top + CANVAS_HEIGHT - 12,
+                }}
+              >
+                {av.label}
+              </span>
+            ))}
+
+            {/*
+              現在地。**押した瞬間の座標を1点だけ打つ。** 追いかけない。
+              「◯分前に取得した位置です」と時点を出す作りと揃える。
+            */}
+            {location && (
+              <div
+                className={`${styles.youAreHere} ${stale ? styles.youAreHereStale : ''}`}
+                style={{ left: `${view.place(location).x * 100}%`, top: `${view.place(location).y * 100}%` }}
+              />
+            )}
+
+            {/*
+              選択中は「大きさ・色・縁取り・名前の濃さ」を同時に変える。
+              **色だけで区別しない。** 色覚特性によっては伝わらないので、
+              サイズと縁取りを必ず併用する
+            */}
+            {onMap.map((v) => {
+              const active = pickedId === v.id;
+              const pos = view.place(v.coords);
+              return (
+                <button
+                  key={v.id}
+                  type="button"
+                  onClick={() => setPickedId(v.id)}
+                  aria-pressed={active}
+                  aria-label={`${v.name}${active ? '（選択中）' : ''}`}
+                  className={`${styles.pin} ${active ? styles.pinActive : ''}`}
+                  style={{ left: `${pos.x * 100}%`, top: `${pos.y * 100}%` }}
+                >
+                  <span className={styles.pinDotSlot}>
+                    <VenueDot letter={v.letter} size={active ? PIN_DOT_MAX : 24} tone={active ? 'selected' : 'muted'} />
+                  </span>
+                  <span className={`${styles.pinName} ${active ? styles.pinNameActive : ''}`}>{v.name}</span>
+                </button>
+              );
+            })}
+
+          </div>
+        </div>
 
         {/*
-          🔴 **方角を明示する。**
+          🔴 **方角と起点は、スクロールの外に置く。**
 
-          この地図は必ず北が上（`buildMapView` が緯度をそのまま縦にしている）。
-          **回転しないので、コンパスは飾りではなく「回らない」という宣言になる。**
-          方角が分からないと「徒歩11分」がどちらへの11分か判断できず、
-          このアプリの中心機能が使えない。
+          地図の中に置いていたら、**拡大して動かした瞬間に画面から流れ出る。**
+          倍率を上げるほど方角が要るのに、上げるほど見えなくなってしまう。
         */}
         <div className={styles.compass}>
           <span className={styles.compassArrow}>▲</span>
           <span className={styles.compassText}>北</span>
         </div>
 
-        {/*
-          現在地。**押した瞬間の座標を1点だけ打つ。** 追いかけない。
-          「◯分前に取得した位置です」と時点を出す作りと揃える。
-        */}
-        {location && (
-          <div
-            className={`${styles.youAreHere} ${stale ? styles.youAreHereStale : ''}`}
-            style={{ left: `${view.place(location).x * 100}%`, top: `${view.place(location).y * 100}%` }}
-          />
-        )}
-
-        {/*
-          選択中は「大きさ・色・縁取り・名前の濃さ」を同時に変える。
-          **色だけで区別しない。** 色覚特性によっては伝わらないので、
-          サイズと縁取りを必ず併用する
-        */}
-        {dataset.venues.map((v) => {
-          const active = pickedId === v.id;
-          const pos = v.coords ? view.place(v.coords) : { x: v.x, y: v.y };
-          return (
-            <button
-              key={v.id}
-              type="button"
-              onClick={() => setPickedId(v.id)}
-              aria-pressed={active}
-              aria-label={`${v.name}${active ? '（選択中）' : ''}`}
-              className={`${styles.pin} ${active ? styles.pinActive : ''}`}
-              style={{ left: `${pos.x * 100}%`, top: `${pos.y * 100}%` }}
-            >
-              <span className={styles.pinDotSlot}>
-                <VenueDot letter={v.letter} size={active ? PIN_DOT_MAX : 24} tone={active ? 'selected' : 'muted'} />
-              </span>
-              <span className={`${styles.pinName} ${active ? styles.pinNameActive : ''}`}>{v.name}</span>
-            </button>
-          );
-        })}
-
-        {/* 何を起点にしているかを必ず示す。「現在地」を名乗るのは実際に取れたときだけ */}
         <div className={styles.here}>
           <span className={styles.hereText}>
             {location ? '起点: 現在地' : origin ? `起点: ${origin.name}` : '起点がありません'}
           </span>
         </div>
       </div>
+
+      {offMap.length > 0 && (
+        <div className={styles.offMapBar}>
+          <p className={styles.offMapHead}>{`地図に出せていない会場（${offMap.length}）`}</p>
+          <div className={styles.offMapRow}>
+            {offMap.map((v) => {
+              const active = pickedId === v.id;
+              return (
+                <button
+                  key={v.id}
+                  type="button"
+                  onClick={() => setPickedId(v.id)}
+                  aria-pressed={active}
+                  aria-label={`${v.name}${active ? '（選択中）' : ''}`}
+                  className={`${styles.offMapChip} ${active ? styles.offMapChipActive : ''}`}
+                >
+                  {v.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div className={styles.content}>
         {/* 位置情報の導線。**押されるまで許可を求めない。** */}
@@ -312,6 +489,12 @@ function MapTabContent() {
               </p>
             </div>
           </div>
+          {/*
+            🔴 **徒歩時間のすぐ下に置く。** ここは「この数字をどう受け取るか」で、
+            会場の紹介文（desc）より先に読まれないと意味がない。
+            **点で表せない会場（ホコテン）のためにある。** 無い会場では何も出ない。
+          */}
+          {picked.note && <p className={styles.cardNote}>{picked.note}</p>}
           <p className={styles.cardDesc}>{picked.desc}</p>
 
           {/*
