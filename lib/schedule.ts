@@ -9,7 +9,7 @@
  */
 
 import type { Dataset, Session, Venue } from '@/lib/dataset';
-import { walkMinutesBetween } from '@/lib/dataset';
+import { buildingOf, walkMinutesBetween } from '@/lib/dataset';
 import { verticalMinutesBetween } from '@/lib/elevator';
 
 /** "HH:MM" → 0時からの経過分 */
@@ -157,7 +157,12 @@ export function evaluateTravel(
     建物が違えば「降りて・歩いて・上がる」。同じ建物なら階差だけ。
   */
   const vertical = verticalMinutesBetween(
-    prev.venueId === next.venueId,
+    /*
+      🔴 **会場idではなく建物で比べる（web#13）。**
+      「HooK 4F」と「日本生命札幌ビル 1Fアトリウム」は**別の会場idだが同じビル**。
+      idで比べると「建物が違う」と見なし、降りて歩いて上がる時間を足してしまう。
+    */
+    buildingOf(dataset, prev.venueId) === buildingOf(dataset, next.venueId),
     prev.floor,
     next.floor,
   );

@@ -440,3 +440,35 @@
   font-size: 12px;
   line-height: 18px;
 }
+
+/*
+  同じ建物にある、ほかの会場（web#13）。
+  地図では1つのピンにまとまるので、**切り替えはここにしかない。**
+*/
+.sameBuildingBox {
+  margin-top: 8px;
+}
+
+.sameBuildingHead {
+  margin: 0 0 4px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.sameBuildingRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sameBuildingChip {
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  padding: 5px 10px;
+  color: var(--color-teal-dark);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}

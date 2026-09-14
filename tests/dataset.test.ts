@@ -20,6 +20,7 @@ import {
   sessionById,
   venueById,
   walkMinutesBetween,
+  buildingOf,
 } from '@/lib/dataset';
 
 /** 最小の正しいデータ。各テストはここから1箇所だけ壊す */
@@ -375,6 +376,70 @@ describe('参照', () => {
     const d = parsed();
     assert.equal(walkMinutesBetween(d, 'a', 'a'), 0);
     assert.equal(walkMinutesBetween(d, 'a', 'c'), null);
+  });
+});
+
+/**
+ * 同じビルの中にある別の会場（web#13）。
+ *
+ * 🔴 **公開データには `building` が入っていたのに、Web版が読んでいなかった。**
+ * そのため `atrium` / `creativestudio` / `fourpla` の3会場は、
+ * **他のどの会場との徒歩時間も引けなかった。**
+ */
+describe('同じビルの中にある会場', () => {
+  function withBuilding(): Dataset {
+    const base = valid();
+    const r = parseDataset({
+      ...base,
+      venues: [
+        ...(base.venues as Record<string, unknown>[]),
+        {
+          id: 'a2',
+          name: '会場Aの別スペース',
+          letter: 'A',
+          desc: '',
+          address: '',
+          x: 0.2,
+          y: 0.3,
+          building: 'a',
+        },
+      ],
+    });
+    assert.ok(r.ok, '前提: building を足しても通ること');
+    return r.dataset;
+  }
+
+  it('🔴 parseDataset が building を捨てない', () => {
+    // web#2 で offsitePrograms / tagWeights / floor を捨てていたのと同じ形の取りこぼし
+    assert.equal(withBuilding().venues.find((v) => v.id === 'a2')?.building, 'a');
+  });
+
+  it('buildingOf は、building が無ければ会場id自身を返す', () => {
+    const d = withBuilding();
+    assert.equal(buildingOf(d, 'a2'), 'a');
+    assert.equal(buildingOf(d, 'b'), 'b');
+    // 知らない会場でも落ちない
+    assert.equal(buildingOf(d, 'zzz'), 'zzz');
+  });
+
+  it('同じビルの中は0分（階の移動は verticalMinutesBetween が見る）', () => {
+    assert.equal(walkMinutesBetween(withBuilding(), 'a2', 'a'), 0);
+  });
+
+  it('🔴 walks に出てこない会場でも、建物で照らして引ける', () => {
+    /*
+      これが web#13 の本体。`walks` には `a ↔ b` しか無く、`a2` は1組も無い。
+      **引くときも `buildingOf` を通さないと、a2 ↔ b が必ず null になる。**
+    */
+    const d = withBuilding();
+    assert.ok(!d.walks.some((w) => w.from === 'a2' || w.to === 'a2'), '前提: walks に a2 は無い');
+    assert.equal(walkMinutesBetween(d, 'a2', 'b'), 9);
+    assert.equal(walkMinutesBetween(d, 'b', 'a2'), 9);
+  });
+
+  it('⚠️ missingWalks は建物の単位で数える（埋めようのない組を報告しない）', () => {
+    // 会場の単位で数えると a2 ↔ a や a2 ↔ c が増え、未登録が水増しされる
+    assert.deepEqual(missingWalks(withBuilding()), ['a ↔ c', 'b ↔ c']);
   });
 });
 

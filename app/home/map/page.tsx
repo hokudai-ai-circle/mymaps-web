@@ -219,6 +219,34 @@ function MapTabContent() {
   );
   const offMap = dataset.venues.filter((v) => v.coords === undefined);
 
+  /*
+    🔴 **同じ建物の会場は、1つのピンにまとめる（web#13）。**
+
+    公式は同じビルの別スペースを別の会場名で出す（HooK とアトリウム、
+    SCARTSコートとクリエイティブスタジオ、SIH と 4PLA PARK、
+    Station01 と Deep Tech Core）。**座標も同じなので、そのまま描くと
+    ピンが完全に重なり、後ろの会場が一生押せない。**
+
+    公開データでは4組が同じ座標を持っている。
+
+    ピンは建物ごとに1つ。中身の切り替えは、下の会場カードで行う。
+  */
+  const pins = (() => {
+    const byBuilding = new Map<string, typeof onMap>();
+    for (const v of onMap) {
+      const key = v.building ?? v.id;
+      const got = byBuilding.get(key);
+      if (got) got.push(v);
+      else byBuilding.set(key, [v]);
+    }
+    return [...byBuilding.values()];
+  })();
+
+  /** いま選んでいる会場と**同じ建物にある、ほかの会場** */
+  const neighbours = dataset.venues.filter(
+    (v) => v.id !== picked.id && (v.building ?? v.id) === (picked.building ?? picked.id),
+  );
+
   /** 通りの太さ。街区の1割ほど。**枠が広がると相対的に細くなる** */
   const roadW = Math.max(3, Math.round(box.width * view.blockWidth * 0.22));
   const roadH = Math.max(3, Math.round(box.height * view.blockHeight * 0.22));
@@ -364,16 +392,22 @@ function MapTabContent() {
               **色だけで区別しない。** 色覚特性によっては伝わらないので、
               サイズと縁取りを必ず併用する
             */}
-            {onMap.map((v) => {
-              const active = pickedId === v.id;
+            {pins.map((group) => {
+              /*
+                同じ建物の会場は座標も letter も1つで代表する。
+                **選択中かどうかは「この建物のどれかが選ばれているか」で見る。**
+              */
+              const v = group.find((x) => x.id === pickedId) ?? group[0];
+              const active = group.some((x) => x.id === pickedId);
               const pos = view.place(v.coords);
+              const label = group.length > 1 ? `${v.name} ほか${group.length - 1}件` : v.name;
               return (
                 <button
-                  key={v.id}
+                  key={v.building ?? v.id}
                   type="button"
                   onClick={() => setPickedId(v.id)}
                   aria-pressed={active}
-                  aria-label={`${v.name}${active ? '（選択中）' : ''}`}
+                  aria-label={`${label}${active ? '（選択中）' : ''}`}
                   className={`${styles.pin} ${active ? styles.pinActive : ''}`}
                   style={{ left: `${pos.x * 100}%`, top: `${pos.y * 100}%` }}
                 >
@@ -495,6 +529,33 @@ function MapTabContent() {
             **点で表せない会場（ホコテン）のためにある。** 無い会場では何も出ない。
           */}
           {picked.note && <p className={styles.cardNote}>{picked.note}</p>}
+
+          {/*
+            🔴 **同じ建物の会場は、地図では1つのピンになっている（web#13）。**
+            ここで切り替えられないと、後ろの会場に一生たどり着けない。
+
+            📝 **徒歩0分ではあるが、階が違えば移動時間は乗る**
+            （SIH 13階 → 4PLA PARK 3階）。**「同じ場所」とは書かない。**
+          */}
+          {neighbours.length > 0 && (
+            <div className={styles.sameBuildingBox}>
+              <p className={styles.sameBuildingHead}>同じ建物の会場</p>
+              <div className={styles.sameBuildingRow}>
+                {neighbours.map((v) => (
+                  <button
+                    key={v.id}
+                    type="button"
+                    onClick={() => setPickedId(v.id)}
+                    aria-label={`${v.name}へ切り替える`}
+                    className={styles.sameBuildingChip}
+                  >
+                    {v.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <p className={styles.cardDesc}>{picked.desc}</p>
 
           {/*
