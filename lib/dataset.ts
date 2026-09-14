@@ -46,6 +46,18 @@ export type Venue = {
    * こちらは「この数字をどう受け取るか」。混ぜると、どちらも読まれなくなる。
    */
   note?: string;
+  /**
+   * 同じビルの中にある別の会場を束ねる印。**無ければ会場id自身が建物。**
+   *
+   * 🔴 **公式が同じビルの別スペースを別の会場名で出す。**
+   * 「日本生命札幌ビル 1Fアトリウム空間」と「HooK」、
+   * 「SCARTS コート」と「SCARTS クリエイティブスタジオ」など。
+   *
+   * ⚠️ **徒歩時間（`walks`）は建物の側にしか入っていない。**
+   * 同じビルなら歩く距離は同じなので、組み合わせを増やしていない。
+   * だから `walkMinutesBetween` は**必ず建物に直してから引く**こと。
+   */
+  building?: string;
 };
 
 /**
@@ -303,6 +315,12 @@ export function parseDataset(input: unknown): ParseResult {
       ...(coords ? { coords } : {}),
       // 断り書きは無いのが普通。**空文字は持たせない**（画面側が真偽で分岐できる）
       ...(isNonEmptyString(raw.note) ? { note: raw.note } : {}),
+      /*
+        🔴 **ここで捨てると、3会場の徒歩時間が全部 null になる（web#13）。**
+        web#2 で `offsitePrograms` / `tagWeights` / `floor` を捨てていたのと
+        同じ形の取りこぼし。**配信データに入っていても、検証が落とせば届かない。**
+      */
+      ...(isNonEmptyString(raw.building) ? { building: raw.building } : {}),
     });
   }
   if (venues.length === 0) fail('venues が空です');
@@ -582,11 +600,48 @@ export function sessionById(dataset: Dataset, id: string): Session | undefined {
  * （索引を持たせると保存して読み戻せなくなる）。会場は多くても10前後、
  * 組み合わせは45程度なので、探索の回数は問題にならない。
  */
+/**
+ * その会場が入っている建物。**`building` が無ければ会場id自身。**
+ *
+ * 徒歩時間も「同じ建物か」の判定も、**必ずこれを通してから**比べること。
+ */
+export function buildingOf(dataset: Dataset, venueId: string): string {
+  const v = dataset.venues.find((x) => x.id === venueId);
+  return v?.building ?? venueId;
+}
+
 export function walkMinutesBetween(dataset: Dataset, a: string, b: string): number | null {
   if (a === b) return 0;
-  const hit = dataset.walks.find(
-    (w) => (w.from === a && w.to === b) || (w.from === b && w.to === a),
-  );
+
+  /*
+    🔴 **同じ建物なら歩かない。**
+
+    公式が同じビルの別スペースを別の会場名で出すので、会場は別々に立ててある。
+    **`walks` にその組を持たせない**ためにここで 0 を返す。
+
+    ⚠️ 階の差はここでは足さない。**縦移動は `verticalMinutesBetween` の仕事。**
+  */
+  const from = buildingOf(dataset, a);
+  const to = buildingOf(dataset, b);
+  if (from === to) return 0;
+
+  /*
+    🔴 **引くときも建物で照らす（web#13）。**
+
+    会場idのまま `walks` を探すと、**同じビルの別スペースは他の会場との組も
+    引けなくなる。** `walks` に `hook ↔ akarenga` はあっても
+    `atrium ↔ akarenga` は無いので、アトリウムから赤れんがへ行くだけで
+    「徒歩時間が未登録です」になる。
+
+    モバイル側は先にこれを踏んで、**58組が未登録になった**（NoMaps-fan-app#150）。
+
+    **建物で照らせば、会場が何個ぶら下がっても `walks` は1行も増えない。**
+  */
+  const hit = dataset.walks.find((w) => {
+    const wf = buildingOf(dataset, w.from);
+    const wt = buildingOf(dataset, w.to);
+    return (wf === from && wt === to) || (wf === to && wt === from);
+  });
   return hit ? hit.minutes : null;
 }
 
@@ -611,11 +666,16 @@ export function categoriesOf(dataset: Dataset): string[] {
  */
 export function missingWalks(dataset: Dataset): string[] {
   const missing: string[] = [];
-  const { venues } = dataset;
-  for (let i = 0; i < venues.length; i++) {
-    for (let j = i + 1; j < venues.length; j++) {
-      if (walkMinutesBetween(dataset, venues[i].id, venues[j].id) === null) {
-        missing.push(`${venues[i].id} ↔ ${venues[j].id}`);
+  /*
+    ⚠️ **建物の単位で数える（web#13）。**
+    会場の単位で数えると、同じビルの別スペースぶんだけ組が水増しされ、
+    **埋めようのない組を「未登録」と報告し続ける**ことになる。
+  */
+  const buildings = [...new Set(dataset.venues.map((v) => buildingOf(dataset, v.id)))];
+  for (let i = 0; i < buildings.length; i++) {
+    for (let j = i + 1; j < buildings.length; j++) {
+      if (walkMinutesBetween(dataset, buildings[i], buildings[j]) === null) {
+        missing.push(`${buildings[i]} ↔ ${buildings[j]}`);
       }
     }
   }
